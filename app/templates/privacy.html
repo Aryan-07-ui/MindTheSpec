@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 1rem 0;">
+  <h1>Privacy Policy</h1>
+  <p class="header-intro">Effective Date: 29 October 2026</p>
+
+  <div class="card" style="margin-top: 1.5rem;">
+    <h2>1. Data Retention and Scope</h2>
+    <p>
+      MindTheSpec is an academic solo research prototype. We store account credentials (using one-way salted bcrypt password hashes), project names, requirement definitions, and structured stakeholder interpretation submissions in a persistent relational database.
+    </p>
+
+    <h2>2. Blind Interpretation Confidentiality</h2>
+    <p>
+      Interpretation entries submitted during an active collecting session are restricted server-side. The database and API do not permit other project members, observers, or the project owner to retrieve another user's interpretation content prior to session lock.
+    </p>
+
+    <h2>3. Third-Party Disclosures & Trackers</h2>
+    <p>
+      MindTheSpec uses zero third-party analytics trackers, zero advertisement cookies, and zero hosted paid LLM APIs. Data is never sold, transmitted to third-party advertisers, or used for commercial training.
+    </p>
+
+    <h2>4. Session and Cookie Handling</h2>
+    <p>
+      We use a single cryptographically signed, HttpOnly session cookie (<code>mindthespec_session</code>) to maintain authentication state. No tracking tokens or sensitive requirement details are embedded in URL parameters or public logs.
+    </p>
+
+    <h2>5. Data Deletion Requests</h2>
+    <p>
+      Users participating in demonstration sessions may request removal of their demonstration accounts and project data by contacting the project administrator.
+    </p>
+  </div>
+</div>
+{% endblock %}

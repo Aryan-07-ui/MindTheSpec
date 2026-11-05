@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/app">Workspace</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/projects/{{ project.project_id }}">{{ project.project_name }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <span>Audit Trail</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Audit Trail: {{ project.project_name }}</h1>
+    <p class="header-intro">
+      Immutable, append-only log of project creation, requirement revisions, blind session openings, lock actions, and official resolutions.
+    </p>
+  </div>
+  <a href="/app/projects/{{ project.project_id }}" class="btn btn-secondary">&larr; Back to Project</a>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title" style="margin: 0;">Event History</h2>
+    <span style="font-size: 0.82rem; color: var(--text-muted);">Confidential interpretation bodies are never stored in audit logs</span>
+  </div>
+
+  {% if logs %}
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Timestamp (UTC)</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Entity</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+        <tr>
+          <td style="white-space: nowrap; font-size: 0.82rem; color: var(--text-muted);">
+            {{ l.created_at.strftime('%Y-%m-%d %H:%M:%S') if l.created_at else '-' }}
+          </td>
+          <td>
+            <strong>{{ l.actor.full_name if l.actor else 'System' }}</strong>
+          </td>
+          <td>
+            <span class="badge {% if 'LOCKED' in l.action %}badge-locked{% elif 'RESOLVED' in l.action or 'RESOLUTION' in l.action %}badge-resolved{% elif 'CREATED' in l.action %}badge-collecting{% else %}badge-draft{% endif %}">
+              {{ l.action }}
+            </span>
+          </td>
+          <td>{{ l.entity_type }} #{{ l.entity_id }}</td>
+          <td><div style="max-width: 420px;">{{ l.details or '-' }}</div></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-title">No audit events recorded yet</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

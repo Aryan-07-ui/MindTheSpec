@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "MindTheSpec",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Cross-platform",
+  "description": "Different minds. One understanding. Requirement interpretation and divergence detection platform."
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-kicker">
+    <svg width="18" height="18" viewBox="0 0 64 64" fill="none" style="vertical-align: middle;">
+      <circle cx="19" cy="37" r="10" stroke="var(--ink-main)" stroke-width="4" fill="var(--bg-surface)"/>
+      <circle cx="45" cy="37" r="10" stroke="var(--ink-main)" stroke-width="4" fill="var(--bg-surface-alt)"/>
+      <path d="M 28 36 C 30 33 34 33 36 36" stroke="var(--signature-outline)" stroke-width="4" fill="none"/>
+    </svg>
+    <span>Requirement Interpretation Platform</span>
+  </div>
+
+  <h1 class="hero-headline">
+    Different minds.<br>
+    <span class="highlight-grape">One understanding.</span>
+  </h1>
+
+  <p class="hero-subhead">
+    A simple requirement like <em>"deliver fast within 24 hours"</em> sounds obvious until your developer plans for business days and your tester tests across the weekend. MindTheSpec catches these hidden disagreements before anyone starts building.
+  </p>
+
+  <div class="hero-actions">
+    {% if current_user %}
+    <a href="/app" class="btn btn-primary btn-lg">Open Your Workspace</a>
+    {% else %}
+    <a href="/register" class="btn btn-primary btn-lg">Start First Session</a>
+    <a href="#circuit-showcase" class="btn btn-secondary btn-lg">Explore Workflow</a>
+    {% endif %}
+  </div>
+</section>
+
+<!-- Signature Animation: Circuit Board & Animated Beam Workflow (Sketchbook Studio Aesthetic) -->
+<section id="circuit-showcase" class="circuit-board-wrapper" aria-labelledby="circuit-title">
+  <div class="showcase-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <h2 id="circuit-title" style="margin: 0; font-size: 1.35rem;">Workflow Architecture</h2>
+      <span class="showcase-badge">Live Circuit Flow</span>
+    </div>
+    <span style="font-size: 0.88rem; color: var(--ink-muted); font-weight: 600;">
+      Interactive Trace: Requirement &rarr; Blind Branches &rarr; Divergence &rarr; Consensus
+    </span>
+  </div>
+
+  <!-- SVG Circuit Board Canvas -->
+  <div style="width: 100%; overflow-x: auto;">
+    <svg class="circuit-svg" viewBox="0 0 920 280" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interactive circuit diagram showing requirement branching to Alice and Bob, revealing a 48 hour divergence, and converging into locked resolution">
+      <!-- Circuit Grid Patterns / Micro-Traces -->
+      <g opacity="0.35" stroke="var(--border-color)" stroke-width="1" stroke-dasharray="2 4">
+        <line x1="20" y1="40" x2="900" y2="40" />
+        <line x1="20" y1="140" x2="900" y2="140" />
+        <line x1="20" y1="240" x2="900" y2="240" />
+        <line x1="260" y1="10" x2="260" y2="270" />
+        <line x1="560" y1="10" x2="560" y2="270" />
+        <line x1="740" y1="10" x2="740" y2="270" />
+      </g>
+
+      <!-- Static Base Circuit Traces -->
+      <path d="M 190 140 H 245 L 295 65 H 350" class="circuit-trace" />
+      <path d="M 190 140 H 245 L 295 215 H 350" class="circuit-trace" />
+      <path d="M 520 65 H 575 L 615 115" class="circuit-trace" />
+      <path d="M 520 215 H 575 L 615 165" class="circuit-trace" />
+      <path d="M 725 140 H 775" class="circuit-trace" />
+
+      <!-- Animated Beam Flow Overlays (Adapting @dillionverma/components/animated-beam) -->
+      <path d="M 190 140 H 245 L 295 65 H 350" class="beam-flow beam-flow-grape" id="beam-top" />
+      <path d="M 190 140 H 245 L 295 215 H 350" class="beam-flow beam-flow-burgundy" id="beam-bottom" />
+      <path d="M 520 65 H 575 L 615 115" class="beam-flow beam-flow-grape" />
+      <path d="M 520 215 H 575 L 615 165" class="beam-flow beam-flow-burgundy" />
+      <path d="M 725 140 H 775" class="beam-flow beam-flow-lemon" />
+
+      <!-- Solder Dots & Terminals -->
+      <circle cx="190" cy="140" r="4" class="circuit-node-dot" />
+      <circle cx="245" cy="140" r="3" class="circuit-node-dot" />
+      <circle cx="295" cy="65" r="3" class="circuit-node-dot" />
+      <circle cx="295" cy="215" r="3" class="circuit-node-dot" />
+      <circle cx="575" cy="65" r="3" class="circuit-node-dot" />
+      <circle cx="575" cy="215" r="3" class="circuit-node-dot" />
+      <circle cx="725" cy="140" r="4" class="circuit-node-dot" />
+
+      <!-- Stage 1: Requirement Input Node -->
+      <g class="circuit-node" id="node-req" transform="translate(20, 95)">
+        <rect width="170" height="90" rx="10" fill="var(--bg-surface-elevated)" stroke="var(--border-color)" stroke-width="2" />
+        <rect width="170" height="24" rx="10" fill="var(--ink-main)" />
+        <text x="12" y="16" fill="var(--bg-canvas)" font-family="system-ui" font-size="11" font-weight="700">SPEC INPUT #REQ-204</text>
+        <text x="12" y="44" fill="var(--ink-main)" font-family="system-ui" font-size="12" font-weight="700">"Process refunds</text>
+        <text x="12" y="60" fill="var(--ink-main)" font-family="system-ui" font-size="12" font-weight="700">within 24 hours"</text>
+        <text x="12" y="78" fill="var(--ink-muted)" font-family="system-ui" font-size="10">Unclarified wording</text>
+      </g>
+
+      <!-- Blind Privacy Barrier Label -->
+      <g transform="translate(260, 10)">
+        <rect x="-10" y="0" width="20" height="260" fill="var(--accent-pink-light)" rx="4" />
+        <line x1="0" y1="0" x2="0" y2="260" stroke="var(--signature-outline)" stroke-dasharray="3 3" stroke-width="1.5" />
+        <text x="4" y="20" fill="var(--signature-outline)" font-family="system-ui" font-size="9" font-weight="800" transform="rotate(90 4 20)">BLIND PRIVACY GATE</text>
+      </g>
+
+      <!-- Stage 2A: Engineer Interpretation Node (Alice) -->
+      <g class="circuit-node" id="node-alice" transform="translate(350, 20)">
+        <rect width="170" height="90" rx="10" fill="var(--bg-surface-elevated)" stroke="var(--accent-grape)" stroke-width="2" />
+        <rect width="170" height="24" rx="10" fill="var(--bg-surface)" />
+        <text x="12" y="16" fill="var(--accent-grape)" font-family="system-ui" font-size="11" font-weight="700">&bull; ALICE (ENGINEER)</text>
+        <text x="12" y="44" fill="var(--ink-main)" font-family="system-ui" font-size="12" font-weight="700">"24 Business Hours"</text>
+        <text x="12" y="62" fill="var(--ink-muted)" font-family="system-ui" font-size="11">Banking settlement hours</text>
+        <text x="12" y="80" fill="var(--accent-grape)" font-family="system-ui" font-size="11" font-weight="800">SLA: Up to 72h weekend</text>
+      </g>
+
+      <!-- Stage 2B: Tester Interpretation Node (Bob) -->
+      <g class="circuit-node" id="node-bob" transform="translate(350, 170)">
+        <rect width="170" height="90" rx="10" fill="var(--bg-surface-elevated)" stroke="var(--signature-outline)" stroke-width="2" />
+        <rect width="170" height="24" rx="10" fill="var(--bg-surface-alt)" />
+        <text x="12" y="16" fill="var(--signature-outline)" font-family="system-ui" font-size="11" font-weight="700">&bull; BOB (QA TESTER)</text>
+        <text x="12" y="44" fill="var(--ink-main)" font-family="system-ui" font-size="12" font-weight="700">"24 Clock Hours"</text>
+        <text x="12" y="62" fill="var(--ink-muted)" font-family="system-ui" font-size="11">Strict continuous queue</text>
+        <text x="12" y="80" fill="var(--signature-outline)" font-family="system-ui" font-size="11" font-weight="800">SLA: 24h Flat (24/7)</text>
+      </g>
+
+      <!-- Stage 3: Divergence Detection Core Hub -->
+      <g class="circuit-node divergence-alert-glow" id="node-div" transform="translate(615, 95)">
+        <rect width="110" height="90" rx="10" fill="var(--bg-surface-alt)" stroke="var(--signature-outline)" stroke-width="2.5" />
+        <circle cx="55" cy="30" r="14" fill="var(--bg-surface-elevated)" stroke="var(--signature-outline)" stroke-width="2" />
+        <text x="50" y="35" fill="var(--signature-outline)" font-family="system-ui" font-size="14" font-weight="900">!</text>
+        <text x="55" y="58" text-anchor="middle" fill="var(--signature-outline)" font-family="system-ui" font-size="10" font-weight="800">DIVERGENCE</text>
+        <text x="55" y="74" text-anchor="middle" fill="var(--signature-outline)" font-family="system-ui" font-size="13" font-weight="900">&Delta; 48 Hours</text>
+      </g>
+
+      <!-- Stage 4: Resolution Convergence Node (Mint Accent) -->
+      <g class="circuit-node" id="node-res" transform="translate(775, 95)">
+        <rect width="125" height="90" rx="10" fill="var(--accent-mint-light)" stroke="var(--accent-mint)" stroke-width="2.5" />
+        <rect width="125" height="24" rx="10" fill="var(--accent-mint-deep)" />
+        <text x="12" y="16" fill="#FFFFFF" font-family="system-ui" font-size="10" font-weight="800">CONSENSUS</text>
+        <!-- Shield Checkmark Icon -->
+        <circle cx="28" cy="48" r="10" fill="var(--accent-mint-deep)" />
+        <path d="M 24 48 L 27 51 L 32 45" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" />
+        <text x="44" y="52" fill="var(--ink-main)" font-family="system-ui" font-size="11" font-weight="700">Locked</text>
+        <text x="12" y="74" fill="var(--ink-muted)" font-family="system-ui" font-size="10">Binding Rule Stored</text>
+      </g>
+    </svg>
+  </div>
+
+  <!-- Interactive Workflow Controls -->
+  <div class="workflow-stepper-controls" role="group" aria-label="Workflow view controls">
+    <button type="button" class="stepper-btn active" data-step="all">
+      <span>&bull;</span> Full Circuit
+    </button>
+    <button type="button" class="stepper-btn" data-step="blind">
+      <span>1</span> Blind Interpretation Branching
+    </button>
+    <button type="button" class="stepper-btn" data-step="divergence">
+      <span>2</span> Divergence Detection
+    </button>
+    <button type="button" class="stepper-btn" data-step="convergence">
+      <span>3</span> Consensus Convergence
+    </button>
+  </div>
+</section>
+
+<!-- Why Interpretations Drift (Sketchbook Studio Card Fan) -->
+<section class="pillars-section">
+  <div class="section-lead-header">
+    <span class="pillar-number">Core Truth</span>
+    <h2>Why requirements fail in quiet ways</h2>
+    <p class="lead-text">
+      Misunderstandings are rarely caused by bad engineers. They happen because everyone reads clear words with their own background assumptions.
+    </p>
+  </div>
+
+  <div class="card-fan-container">
+    <!-- Fan Card 1: Grape -->
+    <div class="pillar-card fan-card">
+      <div class="pillar-icon-box icon-grape">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+      </div>
+      <span class="pillar-number">01 / Subjective Terms</span>
+      <h3 class="pillar-title">Vague Words Hide Disasters</h3>
+      <p class="pillar-desc">
+        Words like "responsive", "flexible", and "urgent" feel clear in meetings, but each team member envisions a completely different behavior.
+      </p>
+    </div>
+
+    <!-- Fan Card 2: Blush / Pink -->
+    <div class="pillar-card fan-card" style="background-color: var(--bg-surface-alt);">
+      <div class="pillar-icon-box icon-pink">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+      </div>
+      <span class="pillar-number">02 / Social Pressure</span>
+      <h3 class="pillar-title">The Loudest Voice Wins</h3>
+      <p class="pillar-desc">
+        In open calls, teammates nod along to the first confident speaker. Blind submission lets everyone speak their genuine technical view without influence.
+      </p>
+    </div>
+
+    <!-- Fan Card 3: Lemon -->
+    <div class="pillar-card fan-card">
+      <div class="pillar-icon-box icon-lemon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+      </div>
+      <span class="pillar-number">03 / Prevention Cost</span>
+      <h3 class="pillar-title">10x Cheaper Before Coding</h3>
+      <p class="pillar-desc">
+        Finding an assumption mismatch takes 10 minutes in MindTheSpec. Finding it during acceptance testing costs weeks of rewritten code and missed release dates.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works (Step-by-Step Sequence) -->
+<section class="workflow-section">
+  <div class="section-lead-header" style="margin-bottom: 2.5rem;">
+    <span class="pillar-number">Simple 3-Step Process</span>
+    <h2>From confusion to clear consensus</h2>
+    <p class="lead-text">
+      No complex setup. Just three simple steps to keep your team aligned.
+    </p>
+  </div>
+
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-badge">1</div>
+      <h3 class="step-title">Write Blind Interpretations</h3>
+      <p class="step-text">
+        Post a requirement. Developers, testers, and product managers write their expectations independently. No one sees anyone else's answers until the session closes.
+      </p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-badge">2</div>
+      <h3 class="step-title">Reveal Real Gaps</h3>
+      <p class="step-text">
+        The system reveals all submitted viewpoints side by side. Concrete timeline and value mismatches are automatically highlighted for honest comparison.
+      </p>
+    </div>
+
+    <div class="step-card">
+      <div class="step-badge">3</div>
+      <h3 class="step-title">Lock a Single Truth</h3>
+      <p class="step-text">
+        The product owner records the official ruling and the exact reasons behind it. Everyone walks away with the same understanding and a permanent record.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Bottom Call to Action -->
+<section class="cta-banner">
+  <h2>Ready to align your team?</h2>
+  <p>
+    Try MindTheSpec on your next confusing requirement. Catch disagreements on paper instead of in production.
+  </p>
+  {% if current_user %}
+  <a href="/app" class="btn btn-primary btn-lg">Go to Workspace</a>
+  {% else %}
+  <a href="/register" class="btn btn-primary btn-lg">Create Free Account</a>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const buttons = document.querySelectorAll('.stepper-btn');
+  const nodeReq = document.getElementById('node-req');
+  const nodeAlice = document.getElementById('node-alice');
+  const nodeBob = document.getElementById('node-bob');
+  const nodeDiv = document.getElementById('node-div');
+  const nodeRes = document.getElementById('node-res');
+
+  const allNodes = [nodeReq, nodeAlice, nodeBob, nodeDiv, nodeRes];
+
+  function resetHighlights() {
+    allNodes.forEach(n => {
+      if (n) {
+        n.style.opacity = '1';
+        n.style.transform = 'none';
+      }
+    });
+  }
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      buttons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+
+      const step = this.getAttribute('data-step');
+      resetHighlights();
+
+      if (step === 'blind') {
+        if (nodeDiv) nodeDiv.style.opacity = '0.35';
+        if (nodeRes) nodeRes.style.opacity = '0.35';
+        if (nodeAlice) nodeAlice.style.transform = 'scale(1.04)';
+        if (nodeBob) nodeBob.style.transform = 'scale(1.04)';
+      } else if (step === 'divergence') {
+        if (nodeReq) nodeReq.style.opacity = '0.35';
+        if (nodeRes) nodeRes.style.opacity = '0.35';
+        if (nodeDiv) nodeDiv.style.transform = 'scale(1.06)';
+      } else if (step === 'convergence') {
+        if (nodeReq) nodeReq.style.opacity = '0.35';
+        if (nodeAlice) nodeAlice.style.opacity = '0.35';
+        if (nodeBob) nodeBob.style.opacity = '0.35';
+        if (nodeRes) nodeRes.style.transform = 'scale(1.06)';
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

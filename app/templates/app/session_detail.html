@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/app">Workspace</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/projects/{{ session.requirement_version.requirement.project.project_id }}">{{ session.requirement_version.requirement.project.project_name }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/requirements/{{ session.requirement_version.requirement.requirement_id }}">{{ session.requirement_version.requirement.req_code }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <span>Session #{{ session.session_id }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Blind Interpretation Session #{{ session.session_id }}</h1>
+    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+      {% if session.status == 'collecting' %}
+      <span class="badge badge-collecting">Collecting (Blind)</span>
+      {% elif session.status == 'locked' %}
+      <span class="badge badge-locked">Locked</span>
+      {% elif session.status == 'analyzed' %}
+      <span class="badge badge-analyzed">Analyzed</span>
+      {% elif session.status == 'resolved' %}
+      <span class="badge badge-resolved">Resolved</span>
+      {% endif %}
+
+      {% if session.mode == 'self_comparison' %}
+      <span class="badge badge-draft">Mode: Self-Comparison</span>
+      {% endif %}
+
+      <span style="font-size: 0.88rem; color: var(--text-muted);">
+        Evaluating: <strong>{{ session.requirement_version.requirement.req_code }}</strong> (v{{ session.requirement_version.version_no }})
+      </span>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    {% if session.status in ['locked', 'analyzed', 'resolved'] %}
+    <a href="/app/sessions/{{ session.session_id }}/compare" class="btn btn-primary">View Divergence Report</a>
+    {% endif %}
+
+    {% if role == 'owner' and session.status == 'collecting' %}
+    <button type="button" class="btn btn-danger" onclick="lockSession()">
+      🔒 Lock Session &amp; Analyze
+    </button>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Requirement Context Banner -->
+<div class="card" style="border-left: 4px solid var(--accent-grape);">
+  <div style="font-size: 0.85rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; margin-bottom: 0.25rem;">
+    Target Requirement
+  </div>
+  <h2 style="margin: 0 0 0.5rem 0; font-size: 1.15rem;">{{ session.requirement_version.requirement.title }}</h2>
+  <div style="font-size: 1rem; color: var(--ink-main); white-space: pre-wrap;">
+{{ session.requirement_version.body }}
+  </div>
+</div>
+
+<!-- Blind Status Alert -->
+{% if session.status == 'collecting' %}
+<div class="alert alert-info">
+  <strong>Mutual Blindness Enforced:</strong> Total submissions received: <strong>{{ participation.total_submissions }}</strong>.
+  Stakeholder answers remain strictly confidential on the server until the project owner locks this session.
+</div>
+{% endif %}
+
+<!-- My Submission Status / Form -->
+{% if my_interpretations %}
+<div class="card">
+  <div class="card-header">
+    <h3 style="margin: 0;">Your Submitted Interpretation</h3>
+    <span class="badge badge-resolved">Recorded</span>
+  </div>
+
+  {% for my_sub in my_interpretations %}
+  <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; {% if not loop.last %}border-bottom: 1px solid var(--border-color);{% endif %}">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+      <div><strong>Perspective:</strong> <span class="badge badge-draft">{{ my_sub.perspective }}</span></div>
+      <div style="font-size: 0.85rem; color: var(--text-muted);">Submitted: {{ my_sub.submitted_at.strftime('%Y-%m-%d %H:%M') if my_sub.submitted_at else 'Just now' }}</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+      <div class="evidence-box">
+        <div class="evidence-perspective">Primary Actor</div>
+        <div style="font-weight: 600;">{{ my_sub.actor or 'N/A' }}</div>
+      </div>
+      <div class="evidence-box">
+        <div class="evidence-perspective">Stated Delivery Timeline</div>
+        <div style="font-weight: 700; font-size: 1.15rem; color: var(--accent-grape);">
+          {% if my_sub.delivery_hours is not none %}{{ my_sub.delivery_hours }} hours{% else %}Not specified{% endif %}
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom: 0.5rem;">
+      <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Expected Behavior:</div>
+      <div style="white-space: pre-wrap;">{{ my_sub.expected_behavior }}</div>
+    </div>
+    {% if my_sub.acceptance_criteria %}
+    <div style="margin-bottom: 0.5rem;">
+      <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">Acceptance Criteria:</div>
+      <div style="white-space: pre-wrap;">{{ my_sub.acceptance_criteria }}</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  {% if session.status == 'collecting' and session.mode != 'self_comparison' %}
+  <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">
+    Your submission is securely preserved. Other participants' answers cannot be inspected until the owner locks the session.
+  </p>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Submission Form (Shown when user has not submitted in standard mode, or in self_comparison mode) -->
+{% if session.status == 'collecting' and (not my_interpretations or session.mode == 'self_comparison') %}
+<div class="card">
+  <div class="card-header">
+    <h3 style="margin: 0;">
+      {% if session.mode == 'self_comparison' %}
+      Submit a Perspective (Self-Comparison Mode)
+      {% else %}
+      Submit Your Blind Interpretation
+      {% endif %}
+    </h3>
+  </div>
+
+  <form id="submitInterpretationForm">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+      <div class="form-group">
+        <label for="perspective" class="form-label">Your Role / Perspective</label>
+        <select id="perspective" class="form-control" required>
+          <option value="Developer">Developer</option>
+          <option value="Tester">Tester</option>
+          <option value="Analyst">Analyst</option>
+          <option value="Client Representative">Client Representative</option>
+        </select>
+        <div class="form-help">Choose the lens for your interpretation.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="actor" class="form-label">Primary Actor (Who initiates/uses?)</label>
+        <input type="text" id="actor" class="form-control" placeholder="e.g. Registered Shopper">
+      </div>
+
+      <div class="form-group">
+        <label for="delivery-hours" class="form-label">Expected Delivery Timeline (Hours)</label>
+        <input type="number" id="delivery-hours" class="form-control" min="1" max="10000" placeholder="e.g. 24 or 48">
+        <div class="form-help">Structured numeric hours. Critical for timeline conflict checks.</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="expected-behavior" class="form-label">Expected Behavior &amp; Flow</label>
+      <textarea id="expected-behavior" class="form-control" required placeholder="Describe what happens when the requirement is satisfied..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="trigger-conditions" class="form-label">Trigger Conditions (optional)</label>
+      <input type="text" id="trigger-conditions" class="form-control" placeholder="e.g. Order placed before 2 PM local time">
+    </div>
+
+    <div class="form-group">
+      <label for="acceptance-criteria" class="form-label">Observable Acceptance Criteria</label>
+      <textarea id="acceptance-criteria" class="form-control" placeholder="Specific measurable pass/fail conditions for testing..."></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="padding: 0.65rem 1.25rem;">
+      Submit Confidential Interpretation
+    </button>
+  </form>
+</div>
+{% endif %}
+
+{% if session.status in ['locked', 'analyzed', 'resolved'] %}
+<div class="alert alert-success">
+  <strong>Session is Locked:</strong> All submissions are revealed and analyzed.
+  <a href="/app/sessions/{{ session.session_id }}/compare" style="color: inherit; text-decoration: underline; font-weight: 700;">Open Divergence Report &rarr;</a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if session.status == 'collecting' %}
+const form = document.getElementById('submitInterpretationForm');
+if (form) {
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const perspective = document.getElementById('perspective').value;
+    const actor = document.getElementById('actor').value.trim();
+    const deliveryRaw = document.getElementById('delivery-hours').value.trim();
+    const delivery_hours = deliveryRaw ? parseInt(deliveryRaw, 10) : null;
+    const expected_behavior = document.getElementById('expected-behavior').value.trim();
+    const trigger_conditions = document.getElementById('trigger-conditions').value.trim();
+    const acceptance_criteria = document.getElementById('acceptance-criteria').value.trim();
+
+    try {
+      const res = await fetch('/api/sessions/{{ session.session_id }}/interpretations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          perspective,
+          actor: actor || null,
+          delivery_hours,
+          expected_behavior,
+          trigger_conditions: trigger_conditions || null,
+          acceptance_criteria: acceptance_criteria || null
+        })
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const err = await res.json();
+        alert('Submission failed: ' + (err.detail || 'Error'));
+      }
+    } catch (ex) {
+      alert('Network error: ' + ex.message);
+    }
+  });
+}
+
+{% if role == 'owner' %}
+async function lockSession() {
+  if (!confirm("Are you sure you want to lock this session? All submissions will freeze and discrepancies will be computed deterministically.")) {
+    return;
+  }
+  try {
+    const res = await fetch('/api/sessions/{{ session.session_id }}/lock', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'}
+    });
+    if (res.ok) {
+      window.location.href = '/app/sessions/{{ session.session_id }}/compare';
+    } else {
+      const err = await res.json();
+      alert('Lock failed: ' + (err.detail || 'Error'));
+    }
+  } catch (ex) {
+    alert('Network error: ' + ex.message);
+  }
+}
+{% endif %}
+{% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,1300 @@
+/* ==========================================================================
+   MindTheSpec — Sketchbook Studio Design System
+   "Different minds. One understanding."
+   Aesthetic: Playful, imaginative, premium creative-studio aesthetic with
+              soft colors, expressive typography, hand-drawn details, and
+              refined modern UI components in BOTH Light and Dark Modes.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Official Design Tokens (Light Mode Default)
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="light"] {
+  /* Official Light Palette */
+  --bg-canvas: #FDF9F7;               /* Cream White */
+  --bg-surface: #F1EAFE;              /* Soft Lavender */
+  --bg-surface-elevated: #FFFFFF;     /* Pure White Card Center */
+  --bg-surface-alt: #FDE7EC;          /* Blush */
+  --bg-surface-panel: #F8F3FC;        /* Subtle Lavender Wash */
+  --bg-studio-dark: #191525;          /* Midnight Violet */
+
+  --ink-main: #2A2140;                /* Ink Violet */
+  --ink-body: #372D52;                /* Readable Ink */
+  --ink-muted: #6E6486;               /* Dusty Plum */
+  --ink-faint: #9C91B4;               /* Light Lilac Gray */
+
+  --border-color: #E5D9F5;            /* Lilac */
+  --border-subtle: #F0E8FA;           /* Whispering Lilac */
+  --border-focus: #8B5CF6;            /* Grape Violet Focus */
+  --signature-outline: #7A1F3D;       /* Burgundy (5-10% of UI) */
+
+  --accent-grape: #8B5CF6;            /* Grape Violet */
+  --accent-grape-deep: #6D28D9;       /* Deep Violet for AAA text contrast */
+  --accent-grape-hover: #5B21B6;      /* Hover Violet */
+  --accent-grape-light: #F3EDFD;
+
+  --accent-pink: #FF8FB8;             /* Bubblegum Pink */
+  --accent-pink-hover: #F0709F;
+  --accent-pink-light: #FDE7EC;
+
+  --accent-mint: #9BE7C4;             /* Mint */
+  --accent-mint-light: #EBFBF4;
+  --accent-mint-deep: #146342;        /* Dark readable text for mint */
+
+  --accent-lemon: #FFE066;            /* Lemon */
+  --accent-lemon-light: #FFFCEB;
+  --accent-lemon-deep: #7A5B00;
+
+  --accent-burgundy: #7A1F3D;         /* Burgundy */
+  --accent-burgundy-hover: #631730;
+  --accent-burgundy-light: #FDE7EC;
+
+  /* Button Semantics (Light) */
+  --btn-primary-bg: #6D28D9;
+  --btn-primary-text: #FDF9F7;
+  --btn-primary-hover: #5B21B6;
+
+  --btn-sec-bg: #F1EAFE;
+  --btn-sec-text: #2A2140;
+  --btn-sec-border: #E5D9F5;
+  --btn-sec-hover: #E7DBFB;
+
+  /* Shadows & Shapes */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-subtle: 0 1px 3px rgba(42, 33, 64, 0.05);
+  --shadow-sm: 0 3px 8px rgba(42, 33, 64, 0.06);
+  --shadow-md: 0 8px 20px rgba(42, 33, 64, 0.08);
+  --shadow-lg: 0 14px 32px rgba(42, 33, 64, 0.12);
+
+  /* Typography Stacks */
+  --font-display: "Fraunces", Georgia, "Newsreader", serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, monospace;
+}
+
+/* --------------------------------------------------------------------------
+   2. Official Dark Mode Palette (Midnight Studio)
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  --bg-canvas: #191525;               /* Midnight Violet */
+  --bg-surface: #2A223B;              /* Deep Lavender */
+  --bg-surface-elevated: #322847;     /* Elevated Card Center */
+  --bg-surface-alt: #392A42;          /* Muted Plum */
+  --bg-surface-panel: #221B33;        /* Dark Panel Tint */
+  --bg-studio-dark: #120E1C;
+
+  --ink-main: #FDF9F7;                /* Cream White */
+  --ink-body: #EFE7F8;                /* Light Lilac Tint */
+  --ink-muted: #C8BBD8;               /* Pale Dusty Lilac */
+  --ink-faint: #8F7D9F;               /* Dim Lilac */
+
+  --border-color: #4B3B5C;            /* Muted Lavender */
+  --border-subtle: #3A2C4A;           /* Deep Plum Border */
+  --border-focus: #B69AFF;            /* Light Grape Focus */
+  --signature-outline: #C87895;       /* Soft Burgundy */
+
+  --accent-grape: #B69AFF;            /* Light Grape */
+  --accent-grape-deep: #B69AFF;
+  --accent-grape-hover: #CDB9FF;
+  --accent-grape-light: #372A4E;
+
+  --accent-pink: #F4B2CC;             /* Soft Pink */
+  --accent-pink-hover: #F8C8DB;
+  --accent-pink-light: #422837;
+
+  --accent-mint: #9BE7C4;             /* Mint */
+  --accent-mint-light: #1D3B2F;
+  --accent-mint-deep: #9BE7C4;
+
+  --accent-lemon: #FFE066;            /* Lemon */
+  --accent-lemon-light: #3F3619;
+  --accent-lemon-deep: #FFE066;
+
+  --accent-burgundy: #C87895;         /* Soft Burgundy */
+  --accent-burgundy-hover: #D78FA9;
+  --accent-burgundy-light: #392A42;
+
+  /* Button Semantics (Dark) */
+  --btn-primary-bg: #B69AFF;
+  --btn-primary-text: #191525;
+  --btn-primary-hover: #CDB9FF;
+
+  --btn-sec-bg: #2A223B;
+  --btn-sec-text: #FDF9F7;
+  --btn-sec-border: #4B3B5C;
+  --btn-sec-hover: #362B4C;
+
+  --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 3px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 14px 32px rgba(0, 0, 0, 0.65);
+}
+
+/* Explicit data-theme Logo & Icon Swapping (Authoritative Source of Truth) */
+.brand-logo-light { display: block !important; }
+.brand-logo-dark { display: none !important; }
+.theme-icon-sun { display: none !important; }
+.theme-icon-moon { display: block !important; }
+
+[data-theme="dark"] .brand-logo-light { display: none !important; }
+[data-theme="dark"] .brand-logo-dark { display: block !important; }
+[data-theme="dark"] .theme-icon-sun { display: block !important; }
+[data-theme="dark"] .theme-icon-moon { display: none !important; }
+
+[data-theme="light"] .brand-logo-light { display: block !important; }
+[data-theme="light"] .brand-logo-dark { display: none !important; }
+[data-theme="light"] .theme-icon-sun { display: none !important; }
+[data-theme="light"] .theme-icon-moon { display: block !important; }
+
+/* --------------------------------------------------------------------------
+   3. Base Reset & Layout
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-body);
+  background-color: var(--bg-canvas);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Accessibility Focus States */
+:focus-visible {
+  outline: 2.5px solid var(--border-focus);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. Site Header & Brand Navigation
+   -------------------------------------------------------------------------- */
+.site-header {
+  background-color: var(--bg-surface);
+  border-bottom: 1.5px solid var(--border-color);
+  padding: 0.85rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-subtle);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.brand-link:hover {
+  opacity: 0.92;
+}
+
+.brand-logo-img {
+  height: 46px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  transition: transform 0.2s ease;
+}
+
+.brand-logo-light { display: block; }
+.brand-logo-dark { display: none; }
+
+/* Navigation Links */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--ink-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.94rem;
+  transition: color 0.15s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--accent-grape);
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: var(--bg-surface-alt);
+  border: 1.5px solid var(--border-color);
+  color: var(--ink-main);
+  border-radius: var(--radius-pill);
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--signature-outline);
+  color: var(--signature-outline);
+  transform: rotate(15deg);
+}
+
+.theme-icon-sun { display: none; }
+.theme-icon-moon { display: block; }
+
+/* Main Container */
+.main-wrapper {
+  flex: 1;
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumbs a {
+  color: var(--accent-grape);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: var(--border-color);
+  font-size: 0.75rem;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  color: var(--ink-main);
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+}
+
+h1 {
+  font-size: 2.35rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  font-size: 1.65rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.85rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.65rem;
+}
+
+p {
+  margin-bottom: 1rem;
+  color: var(--ink-body);
+}
+
+.lead-text {
+  font-size: 1.18rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+}
+
+/* --------------------------------------------------------------------------
+   5. Buttons & Interactive Controls
+   -------------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.94rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  line-height: 1.2;
+}
+
+.btn-primary {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-bg);
+  box-shadow: 0 2px 6px rgba(109, 40, 217, 0.25);
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-primary-hover);
+  border-color: var(--btn-primary-hover);
+  color: var(--btn-primary-text);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--btn-sec-bg);
+  color: var(--btn-sec-text);
+  border-color: var(--btn-sec-border);
+}
+
+.btn-secondary:hover {
+  background-color: var(--btn-sec-hover);
+  border-color: var(--signature-outline);
+}
+
+.btn-creative {
+  background-color: var(--signature-outline);
+  color: #FFFFFF;
+  border-color: var(--signature-outline);
+  box-shadow: 0 2px 6px rgba(122, 31, 61, 0.25);
+}
+
+.btn-creative:hover {
+  background-color: var(--accent-burgundy-hover);
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background-color: var(--signature-outline);
+  color: #FFFFFF;
+  border-color: var(--signature-outline);
+}
+
+.btn-danger:hover {
+  background-color: #5C122B;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.84rem;
+}
+
+.btn-lg {
+  padding: 0.85rem 1.75rem;
+  font-size: 1.05rem;
+  border-radius: var(--radius-lg);
+}
+
+/* --------------------------------------------------------------------------
+   6. Cards & Sketchbook Surfaces
+   -------------------------------------------------------------------------- */
+.card {
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--signature-outline);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1.5px solid var(--border-color);
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.15rem;
+}
+
+.card-title {
+  font-size: 1.18rem;
+  font-family: var(--font-display);
+  color: var(--ink-main);
+}
+
+/* Metric / Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.stat-card {
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-value {
+  font-size: 2.2rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--accent-grape);
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   7. Status Badges & Pills
+   -------------------------------------------------------------------------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.02em;
+}
+
+.badge-draft {
+  background-color: var(--bg-surface-alt);
+  color: var(--ink-muted);
+  border: 1px solid var(--border-color);
+}
+
+.badge-collecting {
+  background-color: var(--accent-grape-light);
+  color: var(--accent-grape);
+  border: 1px solid var(--border-color);
+}
+
+.badge-locked {
+  background-color: var(--accent-lemon-light);
+  color: var(--accent-lemon-deep);
+  border: 1px solid var(--accent-lemon);
+}
+
+.badge-analyzed, .badge-divergence {
+  background-color: var(--accent-pink-light);
+  color: var(--signature-outline);
+  border: 1.5px solid var(--signature-outline);
+}
+
+.badge-resolved, .badge-consensus {
+  background-color: var(--accent-mint-light);
+  color: var(--accent-mint-deep);
+  border: 1px solid var(--accent-mint);
+}
+
+.showcase-badge {
+  background-color: var(--accent-grape);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   8. Form Controls
+   -------------------------------------------------------------------------- */
+.form-group {
+  margin-bottom: 1.35rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 0.4rem;
+  color: var(--ink-main);
+}
+
+.form-help {
+  font-size: 0.84rem;
+  color: var(--ink-muted);
+  margin-top: 0.3rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ink-main);
+  background-color: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  outline: none;
+}
+
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* --------------------------------------------------------------------------
+   9. Alerts & Notifications
+   -------------------------------------------------------------------------- */
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.35rem;
+  font-size: 0.94rem;
+  border: 1.5px solid transparent;
+  line-height: 1.5;
+}
+
+.alert-info {
+  background-color: var(--accent-grape-light);
+  color: var(--ink-main);
+  border-color: var(--border-color);
+}
+
+.alert-warning {
+  background-color: var(--accent-lemon-light);
+  color: var(--accent-lemon-deep);
+  border-color: var(--accent-lemon);
+}
+
+.alert-danger {
+  background-color: var(--accent-pink-light);
+  color: var(--signature-outline);
+  border-color: var(--signature-outline);
+}
+
+.alert-success {
+  background-color: var(--accent-mint-light);
+  color: var(--accent-mint-deep);
+  border-color: var(--accent-mint);
+}
+
+/* --------------------------------------------------------------------------
+   10. Tables & Data Grids
+   -------------------------------------------------------------------------- */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-subtle);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.93rem;
+}
+
+.data-table th {
+  background-color: var(--bg-surface-alt);
+  color: var(--ink-main);
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border-bottom: 1.5px solid var(--border-color);
+  font-size: 0.86rem;
+}
+
+.data-table td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--ink-body);
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover td {
+  background-color: var(--bg-surface-panel);
+}
+
+/* --------------------------------------------------------------------------
+   11. Divergence Cards & Evidence Blocks
+   -------------------------------------------------------------------------- */
+.divergence-card {
+  border: 1.5px solid var(--signature-outline);
+  background-color: var(--accent-pink-light);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem;
+  margin-bottom: 1.4rem;
+  box-shadow: var(--shadow-sm);
+  animation: revealDivergence 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.divergence-card:nth-child(2) { animation-delay: 0.1s; }
+.divergence-card:nth-child(3) { animation-delay: 0.2s; }
+.divergence-card:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes revealDivergence {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.divergence-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.divergence-field {
+  font-weight: 700;
+  font-size: 1.1rem;
+  font-family: var(--font-display);
+  color: var(--signature-outline);
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.15rem;
+  margin-top: 0.85rem;
+}
+
+.evidence-box {
+  background-color: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.evidence-perspective {
+  font-weight: 700;
+  color: var(--accent-grape);
+  font-size: 0.86rem;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.evidence-value {
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--ink-main);
+}
+
+/* Divergence Alert Glow */
+.divergence-alert-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(122, 31, 61, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(122, 31, 61, 0.1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   12. Hero Section & Sketchbook Signature Workflow
+   -------------------------------------------------------------------------- */
+.hero-section {
+  padding: 3rem 0 2rem 0;
+  text-align: center;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--ink-main);
+  margin-bottom: 1.25rem;
+}
+
+.hero-headline {
+  font-size: 3.25rem;
+  line-height: 1.12;
+  margin-bottom: 1.25rem;
+  color: var(--ink-main);
+}
+
+.hero-headline .highlight-grape {
+  color: var(--accent-grape);
+  font-style: italic;
+}
+
+.hero-subhead {
+  font-size: 1.22rem;
+  line-height: 1.65;
+  color: var(--ink-muted);
+  max-width: 720px;
+  margin: 0 auto 2.25rem auto;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 3.5rem;
+}
+
+/* Circuit Board Canvas (Sketchbook Studio Colors) */
+.circuit-board-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  padding: 1.5rem;
+  margin: 1.5rem 0 3.5rem 0;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.circuit-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.circuit-trace {
+  stroke: var(--border-color);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.circuit-node-dot {
+  fill: var(--signature-outline);
+  stroke: var(--bg-surface);
+  stroke-width: 2;
+}
+
+/* Animated Beam (Grape Violet & Soft Burgundy) */
+.beam-flow {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  stroke-dasharray: 60 180;
+  animation: beamTravel 4s linear infinite;
+}
+
+.beam-flow-grape {
+  stroke: var(--accent-grape);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.45));
+}
+
+.beam-flow-burgundy {
+  stroke: var(--signature-outline);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 5px rgba(122, 31, 61, 0.45));
+  animation-delay: -1.5s;
+}
+
+.beam-flow-lemon {
+  stroke: var(--accent-lemon);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 5px rgba(255, 224, 102, 0.5));
+  animation-delay: -3s;
+}
+
+@keyframes beamTravel {
+  0% { stroke-dashoffset: 240; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.workflow-stepper-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.stepper-btn {
+  background-color: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-color);
+  color: var(--ink-main);
+  font-weight: 700;
+  font-size: 0.88rem;
+  padding: 0.45rem 1rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.stepper-btn:hover {
+  border-color: var(--signature-outline);
+  color: var(--signature-outline);
+}
+
+.stepper-btn.active {
+  background-color: var(--signature-outline);
+  color: #FFFFFF;
+  border-color: var(--signature-outline);
+}
+
+/* --------------------------------------------------------------------------
+   13. Card Fan Carousel / Tactile Pillars
+   -------------------------------------------------------------------------- */
+.pillars-section {
+  padding: 3rem 0;
+}
+
+.section-lead-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3rem auto;
+}
+
+.card-fan-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.75rem;
+  perspective: 1000px;
+}
+
+.pillar-card {
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: 14px;
+  padding: 2rem 1.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+  transform-origin: center bottom;
+}
+
+.fan-card:nth-child(1) { transform: rotate(-1.5deg); }
+.fan-card:nth-child(2) { transform: rotate(0deg); }
+.fan-card:nth-child(3) { transform: rotate(1.5deg); }
+
+.fan-card:hover {
+  transform: translateY(-8px) rotate(0deg) scale(1.02) !important;
+  box-shadow: var(--shadow-lg);
+  border-color: var(--signature-outline);
+  z-index: 10;
+}
+
+.pillar-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.icon-grape { background-color: var(--accent-grape-light); color: var(--accent-grape); }
+.icon-pink { background-color: var(--accent-pink-light); color: var(--signature-outline); }
+.icon-lemon { background-color: var(--accent-lemon-light); color: var(--accent-lemon-deep); }
+
+.pillar-number {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 0.4rem;
+}
+
+.pillar-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.pillar-desc {
+  font-size: 0.94rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   14. Animated Card Options (Resolution Interface)
+   -------------------------------------------------------------------------- */
+.options-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.option-card {
+  position: relative;
+  background-color: var(--bg-surface-elevated);
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.15rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.option-card:hover {
+  border-color: var(--signature-outline);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.option-card.selected {
+  border-color: var(--accent-grape);
+  background-color: var(--accent-grape-light);
+  box-shadow: 0 0 0 3.5px rgba(139, 92, 246, 0.2);
+}
+
+.option-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.option-card-title {
+  font-weight: 700;
+  font-size: 0.98rem;
+  color: var(--ink-main);
+}
+
+.option-card-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.option-card.selected .option-card-indicator {
+  border-color: var(--accent-grape);
+  background-color: var(--accent-grape);
+}
+
+.option-card.selected .option-card-indicator::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+}
+
+.option-card-desc {
+  font-size: 0.86rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   15. Workflow Steps & Bottom CTA Banner
+   -------------------------------------------------------------------------- */
+.workflow-section {
+  background-color: var(--bg-surface);
+  border: 1.5px solid var(--border-color);
+  border-radius: 18px;
+  padding: 3rem 2.25rem;
+  margin: 2rem 0 4rem 0;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background-color: var(--signature-outline);
+  color: #FFFFFF;
+  font-weight: 800;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.step-title {
+  font-size: 1.18rem;
+  margin-bottom: 0.5rem;
+}
+
+.step-text {
+  font-size: 0.92rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+.cta-banner {
+  background-color: var(--bg-studio-dark);
+  color: #FFFFFF;
+  border-radius: 18px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  margin: 3rem 0 1rem 0;
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--border-color);
+}
+
+.cta-banner h2 {
+  color: #FDF9F7;
+  font-size: 2.25rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.cta-banner p {
+  color: var(--ink-muted);
+  font-size: 1.12rem;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+}
+
+/* --------------------------------------------------------------------------
+   16. Site Footer
+   -------------------------------------------------------------------------- */
+.site-footer {
+  background-color: var(--bg-studio-dark);
+  border-top: 1.5px solid var(--border-color);
+  padding: 3rem 2rem;
+  margin-top: auto;
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+}
+
+.footer-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.footer-brand-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.footer-brand-logo {
+  height: 38px;
+  width: auto;
+}
+
+.footer-copyright {
+  color: var(--ink-muted);
+  font-size: 0.84rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: #FDF9F7;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.footer-links a:hover {
+  color: var(--accent-lemon);
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   17. Resolution Convergence Overlay
+   -------------------------------------------------------------------------- */
+.convergence-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(25, 21, 37, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeInModal 0.25s ease both;
+}
+
+.convergence-modal {
+  background: var(--bg-surface);
+  border: 1.5px solid var(--signature-outline);
+  border-radius: 18px;
+  padding: 2.5rem;
+  max-width: 480px;
+  width: 90%;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: scaleInModal 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleInModal {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.convergence-svg {
+  width: 140px;
+  height: 90px;
+  margin: 0 auto 1.25rem auto;
+}
+
+.converging-path {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: convergeLines 0.7s ease forwards;
+}
+
+@keyframes convergeLines {
+  to { stroke-dashoffset: 0; }
+}
+
+.convergence-shield {
+  opacity: 0;
+  transform-origin: center;
+  transform: scale(0.5);
+  animation: popShield 0.4s 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popShield {
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* --------------------------------------------------------------------------
+   18. Reduced Motion & Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .beam-flow,
+  .divergence-alert-glow,
+  .divergence-card,
+  .fan-card,
+  .converging-path,
+  .convergence-shield,
+  .convergence-modal,
+  .convergence-overlay {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  .fan-card:hover {
+    transform: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-headline { font-size: 2.45rem; }
+  .card-fan-container { grid-template-columns: 1fr; }
+  .steps-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+
+@media (max-width: 640px) {
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+    gap: 0.85rem;
+  }
+  .brand-logo-img { height: 38px; }
+  .nav-links {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .hero-headline { font-size: 2rem; }
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+  .hero-actions .btn { width: 100%; }
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

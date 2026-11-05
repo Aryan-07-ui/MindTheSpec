@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; text-align: center;">
+  <span class="badge badge-draft" style="font-size: 1rem; padding: 0.35rem 0.85rem; margin-bottom: 1rem;">404 Not Found</span>
+  <h1>Resource Not Located</h1>
+  <p style="color: var(--text-muted); margin-bottom: 2rem;">
+    The requested project, requirement, or session does not exist, or you may need to log in with an authorized account.
+  </p>
+  <div style="display: flex; gap: 1rem; justify-content: center;">
+    <a href="/app" class="btn btn-primary">Return to Workspace</a>
+    <a href="/" class="btn btn-secondary">Homepage</a>
+  </div>
+</div>
+{% endblock %}

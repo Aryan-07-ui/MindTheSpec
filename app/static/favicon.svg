@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" fill="none">
+  <!-- MindTheSpec: Official Favicon Squircle -->
+  <defs>
+    <linearGradient id="favLensLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#2563FF"/>
+    </linearGradient>
+    <linearGradient id="favLensRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563FF"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Navy Squircle Background (#0B1020) -->
+  <rect width="64" height="64" rx="16" fill="#0B1020" />
+
+  <!-- 3 Idea Sparks -->
+  <g stroke-linecap="round">
+    <line x1="46" y1="14" x2="46" y2="8" stroke="#A855F7" stroke-width="2.5" />
+    <line x1="53" y1="16" x2="58" y2="10" stroke="#F472B6" stroke-width="2.5" />
+    <line x1="39" y1="16" x2="34" y2="11" stroke="#38BDF8" stroke-width="2.5" />
+  </g>
+
+  <!-- Spectacles Temple Arms -->
+  <path d="M 10 38 C 7 38 4 40 2 44" stroke="#06B6D4" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M 54 38 C 57 38 60 40 62 44" stroke="#A855F7" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Bridge -->
+  <path d="M 28 37 C 30 33 34 33 36 37" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Left Lens (Doc) -->
+  <circle cx="19" cy="38" r="10" stroke="url(#favLensLeft)" stroke-width="3" fill="#0E192E"/>
+  <rect x="15" y="33" width="8" height="10" rx="1" fill="#38BDF8"/>
+  <line x1="17" y1="36" x2="21" y2="36" stroke="#0E192E" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="17" y1="39" x2="21" y2="39" stroke="#0E192E" stroke-width="1.2" stroke-linecap="round"/>
+
+  <!-- Right Lens (Notes + Pencil) -->
+  <circle cx="45" cy="38" r="10" stroke="url(#favLensRight)" stroke-width="3" fill="#1B122F"/>
+  <line x1="40" y1="35" x2="50" y2="35" stroke="#C084FC" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="40" y1="39" x2="48" y2="39" stroke="#C084FC" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Pencil point -->
+  <circle cx="49" cy="41" r="1.5" fill="#FFE066"/>
+</svg>

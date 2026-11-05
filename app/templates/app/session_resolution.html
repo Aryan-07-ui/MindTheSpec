@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/app">Workspace</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/projects/{{ session.requirement_version.requirement.project.project_id }}">{{ session.requirement_version.requirement.project.project_name }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/requirements/{{ session.requirement_version.requirement.requirement_id }}">{{ session.requirement_version.requirement.req_code }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/sessions/{{ session.session_id }}/compare">Divergence Report</a>
+  <span class="breadcrumb-separator">/</span>
+  <span>Record Resolution</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Record Binding Resolution</h1>
+    <p class="header-intro">
+      As project owner, record the accepted decision and rationale. Original stakeholder submissions remain permanently preserved for audit traceability.
+    </p>
+  </div>
+</div>
+
+<!-- Discrepancy Summary Card -->
+<div class="card" style="border-left: 4px solid var(--signature-outline);">
+  <div class="card-header">
+    <h2 class="card-title" style="margin: 0; color: var(--signature-outline);">Unresolved Discrepancies Requiring Decision</h2>
+  </div>
+  {% for div in divergences %}
+  <div style="padding: 0.85rem 1rem; border: 1.5px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 0.75rem; background-color: var(--bg-surface-alt);">
+    <strong style="color: var(--ink-main);">{{ div.evidence_json.title or div.field_name }}:</strong>
+    <span style="color: var(--ink-body);">{{ div.evidence_json.summary }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Animated Card Options (Adapting @isaiahbjork/animated-card-options) -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h3 style="margin: 0;">1. Select a Resolution Strategy</h3>
+      <p style="font-size: 0.84rem; color: var(--ink-muted); margin: 0.2rem 0 0 0;">
+        Choose a starting template or draft your own custom consensus below.
+      </p>
+    </div>
+    <span class="badge badge-collecting">Interactive Templates</span>
+  </div>
+
+  <div class="options-cards-grid" role="radiogroup" aria-label="Resolution strategy options">
+    <!-- Option 1: Synthesis -->
+    <div class="option-card selected" tabindex="0" role="radio" aria-checked="true"
+         data-statement="Tiered processing: Automated requests under threshold processed within 24 calendar hours; complex requests require up to 48 business hours."
+         data-rationale="Balances customer expectations for fast handling while accommodating compliance and weekend banking limits.">
+      <div class="option-card-header">
+        <span class="option-card-title">Synthesis &bull; Tiered Threshold</span>
+        <span class="option-card-indicator" aria-hidden="true"></span>
+      </div>
+      <p class="option-card-desc">
+        Reconciles both views: automated queue operates 24/7, manual review operates during business days.
+      </p>
+    </div>
+
+    <!-- Option 2: Continuous SLA -->
+    <div class="option-card" tabindex="0" role="radio" aria-checked="false"
+         data-statement="Strict continuous SLA: System must guarantee complete delivery within 24 calendar hours round the clock (24/7/365)."
+         data-rationale="Competitive requirements demand uninterrupted availability regardless of weekend schedules.">
+      <div class="option-card-header">
+        <span class="option-card-title">Continuous &bull; 24/7 SLA</span>
+        <span class="option-card-indicator" aria-hidden="true"></span>
+      </div>
+      <p class="option-card-desc">
+        Adopts the strictest interpretation, requiring weekend operations or automated pipelines.
+      </p>
+    </div>
+
+    <!-- Option 3: Business Hours -->
+    <div class="option-card" tabindex="0" role="radio" aria-checked="false"
+         data-statement="Business hours SLA: Processing committed within 24 standard business hours (Monday through Friday, 09:00 - 18:00)."
+         data-rationale="Logistics partners and clearinghouses do not operate over weekends; setting realistic expectations prevents SLA penalties.">
+      <div class="option-card-header">
+        <span class="option-card-title">Standard &bull; Business Days</span>
+        <span class="option-card-indicator" aria-hidden="true"></span>
+      </div>
+      <p class="option-card-desc">
+        Formally scopes delivery to operational work hours, clarifying weekend exclusions in the spec.
+      </p>
+    </div>
+  </div>
+
+  <!-- Resolution Form -->
+  <form id="recordResolutionForm">
+    <div class="form-group">
+      <label for="resolution-statement" class="form-label">2. Binding Decision Statement</label>
+      <input type="text" id="resolution-statement" class="form-control" required
+             value="{{ resolution.statement if resolution else 'Tiered processing: Automated requests under threshold processed within 24 calendar hours; complex requests require up to 48 business hours.' }}"
+             placeholder="e.g. Delivery within 48 hours for eligible orders">
+      <div class="form-help">Clear, unambiguous specification of the agreed-upon behavior.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="resolution-rationale" class="form-label">3. Decision Rationale</label>
+      <textarea id="resolution-rationale" class="form-control" required
+                placeholder="e.g. Operations verified that logistics carriers cannot reliably guarantee 24h across all regions; 48h committed.">{{ resolution.rationale if resolution else 'Balances customer expectations for fast handling while accommodating compliance and weekend banking limits.' }}</textarea>
+      <div class="form-help">Document why this resolution was chosen over alternatives.</div>
+    </div>
+
+    <div style="display: flex; gap: 0.85rem; align-items: center; margin-top: 1.5rem;">
+      <button type="submit" id="saveResolutionBtn" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 0.96rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        Save Official Resolution
+      </button>
+      <a href="/app/sessions/{{ session.session_id }}/compare" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<!-- Resolution Convergence Modal (Only triggered AFTER successful server confirmation) -->
+<div id="convergenceOverlay" class="convergence-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="convergence-title">
+  <div class="convergence-modal">
+    <!-- SVG Reverse Circuit Path Convergence -->
+    <svg class="convergence-svg" viewBox="0 0 140 90" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+      <path d="M 20 20 C 50 20 60 45 70 45" stroke="var(--accent-grape)" stroke-width="3" stroke-linecap="round" class="converging-path" />
+      <path d="M 20 70 C 50 70 60 45 70 45" stroke="var(--signature-outline)" stroke-width="3" stroke-linecap="round" class="converging-path" />
+      <path d="M 70 45 H 105" stroke="var(--accent-lemon)" stroke-width="3.5" stroke-linecap="round" class="converging-path" style="animation-delay: 0.3s;" />
+
+      <!-- Convergence Center Shield Pop -->
+      <g class="convergence-shield" transform="translate(105, 45)">
+        <circle cx="0" cy="0" r="16" fill="var(--accent-mint)" stroke="var(--ink-main)" stroke-width="2.5" />
+        <path d="M -5 0 L -1 4 L 6 -3" stroke="var(--ink-main)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      </g>
+    </svg>
+
+    <h2 id="convergence-title" style="font-size: 1.35rem; margin-bottom: 0.5rem; color: var(--ink-main);">Consensus Converged!</h2>
+    <p style="font-size: 0.92rem; color: var(--ink-muted); margin-bottom: 0;">
+      Binding resolution verified and locked into permanent audit history. Redirecting...
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const optionCards = document.querySelectorAll('.option-card');
+const statementInput = document.getElementById('resolution-statement');
+const rationaleInput = document.getElementById('resolution-rationale');
+
+optionCards.forEach(card => {
+  function selectCard() {
+    optionCards.forEach(c => {
+      c.classList.remove('selected');
+      c.setAttribute('aria-checked', 'false');
+    });
+    card.classList.add('selected');
+    card.setAttribute('aria-checked', 'true');
+
+    const statement = card.getAttribute('data-statement');
+    const rationale = card.getAttribute('data-rationale');
+    if (statement) statementInput.value = statement;
+    if (rationale) rationaleInput.value = rationale;
+  }
+
+  card.addEventListener('click', selectCard);
+  card.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      selectCard();
+    }
+  });
+});
+
+document.getElementById('recordResolutionForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const statement = statementInput.value.trim();
+  const rationale = rationaleInput.value.trim();
+  const saveBtn = document.getElementById('saveResolutionBtn');
+  const overlay = document.getElementById('convergenceOverlay');
+
+  if (!statement || !rationale) return;
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Locking Consensus...';
+
+  try {
+    const res = await fetch('/api/sessions/{{ session.session_id }}/resolution', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({statement, rationale})
+    });
+
+    if (res.ok) {
+      overlay.style.display = 'flex';
+      setTimeout(() => {
+        window.location.href = '/app/sessions/{{ session.session_id }}/compare';
+      }, 1100);
+    } else {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Official Resolution';
+      const err = await res.json();
+      alert('Error recording resolution: ' + (err.detail || 'Failed'));
+    }
+  } catch (ex) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Official Resolution';
+    alert('Network error: ' + ex.message);
+  }
+});
+</script>
+{% endblock %}

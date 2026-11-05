@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/app">Workspace</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/projects/{{ requirement.project.project_id }}">{{ requirement.project.project_name }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <span>{{ requirement.req_code }}</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ requirement.req_code }}: {{ requirement.title }}</h1>
+    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+      <span class="badge badge-collecting">{{ requirement.status }}</span>
+      <span style="font-size: 0.88rem; color: var(--text-muted);">Current: Version {{ requirement.version }}</span>
+      <span style="font-size: 0.88rem; color: var(--text-muted);">• Created: {{ requirement.created_at.strftime('%Y-%m-%d') if requirement.created_at else '-' }}</span>
+    </div>
+  </div>
+  {% if role == 'owner' %}
+  <button type="button" class="btn btn-primary" onclick="startSession()">
+    + Start Blind Interpretation Session
+  </button>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title" style="margin: 0;">Requirement Text (Version {{ requirement.version }})</h2>
+  </div>
+  <div style="font-size: 1.05rem; line-height: 1.6; color: var(--text-main); white-space: pre-wrap; margin-bottom: 1rem;">
+{{ requirement.description }}
+  </div>
+</div>
+
+<!-- Sessions List -->
+<div class="card">
+  <div class="card-header">
+    <h3 style="margin: 0;">Interpretation Sessions</h3>
+  </div>
+
+  {% if sessions %}
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Session ID</th>
+          <th>Status</th>
+          <th>Mode</th>
+          <th>Requirement Version</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td><strong>Session #{{ s.session_id }}</strong></td>
+          <td>
+            {% if s.status == 'collecting' %}
+            <span class="badge badge-collecting">Collecting (Blind)</span>
+            {% elif s.status == 'locked' %}
+            <span class="badge badge-locked">Locked</span>
+            {% elif s.status == 'analyzed' %}
+            <span class="badge badge-analyzed">Analyzed</span>
+            {% elif s.status == 'resolved' %}
+            <span class="badge badge-resolved">Resolved</span>
+            {% else %}
+            <span class="badge badge-draft">{{ s.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if s.mode == 'self_comparison' %}
+            <span class="badge badge-draft" style="background-color: #f0f4f8;">Self-Comparison</span>
+            {% else %}
+            Standard Stakeholders
+            {% endif %}
+          </td>
+          <td>v{{ s.requirement_version.version_no }}</td>
+          <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '-' }}</td>
+          <td>
+            {% if s.status in ['locked', 'analyzed', 'resolved'] %}
+            <a href="/app/sessions/{{ s.session_id }}/compare" class="btn btn-secondary btn-sm">View Report</a>
+            {% else %}
+            <a href="/app/sessions/{{ s.session_id }}" class="btn btn-primary btn-sm">Enter Session</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-title">No sessions started yet</div>
+    <div class="empty-state-desc">Start a blind interpretation session to collect independent stakeholder perspectives.</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Requirement Version History (FR-10) -->
+<div class="card">
+  <div class="card-header">
+    <h3 style="margin: 0;">Version History (FR-10)</h3>
+  </div>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Requirement Body</th>
+          <th>Acceptance Notes</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in requirement.versions %}
+        <tr>
+          <td><strong>v{{ v.version_no }}</strong></td>
+          <td><div style="max-width: 500px; white-space: pre-wrap;">{{ v.body }}</div></td>
+          <td>{{ v.acceptance_notes or '-' }}</td>
+          <td>{{ v.created_at.strftime('%Y-%m-%d %H:%M') if v.created_at else '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function startSession() {
+  if (!confirm("Start a new blind interpretation session for {{ requirement.req_code }}?")) return;
+  try {
+    const res = await fetch('/api/requirements/{{ requirement.requirement_id }}/sessions', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({version_id: {{ requirement.current_version_id or 'null' }}, mode: "standard"})
+    });
+    if (res.ok) {
+      const data = await res.json();
+      window.location.href = '/app/sessions/' + data.id;
+    } else {
+      const err = await res.json();
+      alert('Error: ' + (err.detail || 'Could not start session'));
+    }
+  } catch (ex) {
+    alert('Network error: ' + ex.message);
+  }
+}
+</script>
+{% endblock %}

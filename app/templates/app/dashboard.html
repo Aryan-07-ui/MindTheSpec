@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <span>Workspace</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1>Workspace Dashboard</h1>
+    <p class="header-intro">Real-time status of accessible projects, active interpretation sessions, and detected divergences.</p>
+  </div>
+  <button type="button" class="btn btn-primary" onclick="document.getElementById('new-project-card').scrollIntoView({behavior:'smooth'}); document.getElementById('project-title').focus();">
+    + Create Project
+  </button>
+</div>
+
+<!-- Database-Derived Counts Only (Zero fabricated metrics) -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--accent-grape);">{{ stats.active_projects }}</div>
+    <div class="stat-label">Accessible Projects</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--ink-main);">{{ stats.total_requirements }}</div>
+    <div class="stat-label">Total Requirements</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--accent-mint-deep);">{{ stats.open_sessions }}</div>
+    <div class="stat-label">Active Blind Sessions</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--signature-outline);">{{ stats.unresolved_divergences }}</div>
+    <div class="stat-label">Open Divergences</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title" style="margin: 0;">Projects</h2>
+  </div>
+
+  {% if projects %}
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Status</th>
+          <th>Requirements</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in projects %}
+        <tr>
+          <td>
+            <strong><a href="/app/projects/{{ p.project_id }}" style="color: var(--accent-grape); text-decoration: none; font-weight: 700;">{{ p.project_name }}</a></strong>
+            {% if p.description %}
+            <div style="font-size: 0.84rem; color: var(--ink-muted); margin-top: 0.2rem;">{{ p.description[:90] }}{% if p.description|length > 90 %}...{% endif %}</div>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-collecting">{{ p.status }}</span></td>
+          <td><strong style="color: var(--ink-main);">{{ p.requirements | length }}</strong></td>
+          <td><span style="color: var(--ink-muted);">{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '-' }}</span></td>
+          <td>
+            <a href="/app/projects/{{ p.project_id }}" class="btn btn-secondary btn-sm">Open Project</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-title">No projects accessible yet</div>
+    <div class="empty-state-desc">Create your first project below to start recording requirements and collecting blind stakeholder interpretations.</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Create Project Form Card -->
+<div class="card" id="new-project-card">
+  <div class="card-header">
+    <h3 style="margin: 0;">Create New Project</h3>
+  </div>
+  <form id="createProjectForm">
+    <div class="form-group">
+      <label for="project-title" class="form-label">Project Title</label>
+      <input type="text" id="project-title" class="form-control" required placeholder="e.g. Online Shopping Checkout Workflow">
+    </div>
+    <div class="form-group">
+      <label for="project-desc" class="form-label">Description (optional)</label>
+      <textarea id="project-desc" class="form-control" placeholder="Context, scope, and objectives for this project..."></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Project</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('createProjectForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const title = document.getElementById('project-title').value.trim();
+  const description = document.getElementById('project-desc').value.trim();
+  if (!title) return;
+
+  try {
+    const res = await fetch('/api/projects', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({title, description})
+    });
+    if (res.ok) {
+      const data = await res.json();
+      window.location.href = '/app/projects/' + data.id;
+    } else {
+      const err = await res.json();
+      alert('Error creating project: ' + (err.detail || 'Failed'));
+    }
+  } catch (ex) {
+    alert('Network error: ' + ex.message);
+  }
+});
+</script>
+{% endblock %}

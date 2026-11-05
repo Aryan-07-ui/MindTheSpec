@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 3rem auto;">
+  <div class="card" style="box-shadow: var(--shadow-md);">
+    <div class="card-header" style="text-align: center; display: block; border-bottom: 1.5px solid var(--border-color); padding-bottom: 1.25rem;">
+      <h1 class="card-title" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Create Your Account</h1>
+      <p style="font-size: 0.88rem; color: var(--ink-muted); margin: 0;">Join MindTheSpec to align requirements</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger" role="alert" style="margin-top: 1rem;">
+      {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/register" style="margin-top: 1.25rem;">
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <input type="text" id="name" name="name" class="form-control" required autofocus placeholder="Harshat Rov">
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" id="email" name="email" class="form-control" required placeholder="name@domain.com">
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password (min 6 characters)</label>
+        <input type="password" id="password" name="password" class="form-control" minlength="6" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem; padding: 0.75rem;">Register Account</button>
+    </form>
+
+    <div style="margin-top: 1.75rem; text-align: center; font-size: 0.9rem; color: var(--ink-muted); border-top: 1.5px solid var(--border-color); padding-top: 1.15rem;">
+      Already registered? <a href="/login" style="color: var(--accent-grape); font-weight: 700; text-decoration: none;">Sign in here</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
