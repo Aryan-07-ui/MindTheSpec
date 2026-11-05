@@ -235,9 +235,16 @@ python -m pytest -v
 
 ---
 
-## 8. Academic Project Attribution
+### Academic Project Attribution
 
-**MindTheSpec** was designed and built by **Aryan Kushwaha** as a **Semester 3 Integrated Project** combining concepts from:
-- **System Design & Software Architecture:** Multi-tier web platform design, deterministic consensus engines, and state machine workflows.
-- **Database Management Systems (DBMS):** Relational schema design, normalization, referential integrity with cascading constraints, and audit logging.
-- **Cloud Security:** Role-based access control, cryptographic password hashing, server-side data isolation, and defense against common web vulnerabilities.
+**MindTheSpec** was designed and developed by **Aryan Kushwaha** as a **Semester 3 Integrated Project**, incorporating concepts from four academic subjects:
+
+1. **System Design & Software Architecture:** Multi-tier application architecture, stakeholder analysis, requirement modeling, interpretation workflows, and state-machine-based session management.
+
+2. **Database Management Systems (DBMS):** Relational database design, normalization, SQL queries, primary and foreign key constraints, referential integrity, requirement versioning, and audit logging.
+
+3. **Microsoft Azure Data Fundamentals (DP-900):** Relational data concepts, structured data management, data modeling, database workloads, and foundational data security principles.
+
+4. **Cloud Security:** Role-based access control (RBAC), secure authentication, password hashing, session management, data confidentiality, and protection against common web vulnerabilities.
+
+This project demonstrates the practical integration of system design, database technologies, data fundamentals, and application security into a functional requirement interpretation and divergence detection platform.
