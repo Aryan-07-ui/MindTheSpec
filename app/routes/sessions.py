@@ -60,18 +60,21 @@ def submit_interpretation(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Submits a structured interpretation during the collecting phase."""
+    """Submits a structured interpretation during the open/collecting phase."""
     interp = SessionService.submit_interpretation(
         db=db,
         session_id=session_id,
         user_id=current_user.user_id,
         perspective=payload.perspective,
         expected_behavior=payload.expected_behavior,
+        assumptions=payload.assumptions,
+        acceptance_criteria=payload.acceptance_criteria,
+        edge_cases=payload.edge_cases,
+        notes=payload.notes,
         actor=payload.actor,
         trigger_conditions=payload.trigger_conditions,
         delivery_hours=payload.delivery_hours,
         constraints=payload.constraints,
-        acceptance_criteria=payload.acceptance_criteria,
     )
     return InterpretationResponse(
         id=interp.interpretation_id,
@@ -80,10 +83,13 @@ def submit_interpretation(
         perspective=interp.perspective,
         actor=interp.actor,
         expected_behavior=interp.expected_behavior,
+        assumptions=interp.assumptions,
         trigger_conditions=interp.trigger_conditions,
         delivery_hours=interp.delivery_hours,
         constraints=interp.constraints,
         acceptance_criteria=interp.acceptance_criteria,
+        edge_cases=interp.edge_cases,
+        notes=interp.notes,
         submitted_at=interp.submitted_at,
     )
 
@@ -96,7 +102,7 @@ def get_session_interpretations(
     """
     SERVER-SIDE BLIND ACCESS:
     - Pre-lock: returns ONLY current user's submission.
-    - Post-lock: returns all submissions to authorized members.
+    - Post-lock / Post-reveal: returns all submissions to authorized members.
     """
     interps = SessionService.get_session_interpretations(db, session_id, current_user.user_id)
     return [
@@ -107,10 +113,13 @@ def get_session_interpretations(
             perspective=i.perspective,
             actor=i.actor,
             expected_behavior=i.expected_behavior,
+            assumptions=i.assumptions,
             trigger_conditions=i.trigger_conditions,
             delivery_hours=i.delivery_hours,
             constraints=i.constraints,
             acceptance_criteria=i.acceptance_criteria,
+            edge_cases=i.edge_cases,
+            notes=i.notes,
             submitted_at=i.submitted_at,
         )
         for i in interps
@@ -131,10 +140,13 @@ def get_interpretation_by_id(
         perspective=interp.perspective,
         actor=interp.actor,
         expected_behavior=interp.expected_behavior,
+        assumptions=interp.assumptions,
         trigger_conditions=interp.trigger_conditions,
         delivery_hours=interp.delivery_hours,
         constraints=interp.constraints,
         acceptance_criteria=interp.acceptance_criteria,
+        edge_cases=interp.edge_cases,
+        notes=interp.notes,
         submitted_at=interp.submitted_at,
     )
 
@@ -144,8 +156,26 @@ def lock_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Owner locks session, freezing submissions and computing deterministic divergences."""
+    """Locks session, freezing submissions and computing deterministic divergences."""
     session = SessionService.lock_session(db, session_id, current_user.user_id)
+    return SessionResponse(
+        id=session.session_id,
+        requirement_version_id=session.requirement_version_id,
+        created_by=session.created_by,
+        status=session.status,
+        mode=session.mode,
+        locked_at=session.locked_at,
+        created_at=session.created_at,
+    )
+
+@router.post("/api/sessions/{session_id}/reveal", response_model=SessionResponse)
+def reveal_session(
+    session_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Reveals session interpretations and divergences to team members."""
+    session = SessionService.reveal_session(db, session_id, current_user.user_id)
     return SessionResponse(
         id=session.session_id,
         requirement_version_id=session.requirement_version_id,
@@ -162,9 +192,9 @@ def get_divergences(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Retrieves divergence findings after session is locked."""
+    """Retrieves divergence findings after session is locked/analyzed/revealed."""
     session = SessionService.get_session(db, session_id, current_user.user_id)
-    if session.status in ("draft", "collecting"):
+    if session.status in ("draft", "open", "collecting"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Divergence findings are confidential until session lock.",
@@ -176,6 +206,8 @@ def get_divergences(
             session_id=d.session_id,
             field_name=d.field_name,
             kind=d.kind,
+            category=d.category or d.kind,
+            severity=d.severity or "medium",
             evidence_json=d.evidence_json,
             review_status=d.review_status,
             fingerprint=d.fingerprint,
@@ -183,6 +215,16 @@ def get_divergences(
         )
         for d in findings
     ]
+
+@router.post("/api/divergences/{divergence_id}/resolve", status_code=status.HTTP_200_OK)
+def resolve_individual_divergence(
+    divergence_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Marks an individual divergence item as resolved."""
+    div = ResolutionService.resolve_divergence(db, divergence_id, current_user.user_id, "resolved")
+    return {"message": "Divergence marked as resolved", "divergence_id": div.divergence_id, "review_status": div.review_status}
 
 @router.post("/api/sessions/{session_id}/resolution", response_model=ResolutionResponse, status_code=status.HTTP_201_CREATED)
 def record_resolution(
@@ -238,7 +280,7 @@ def export_session_csv(
     Enforces formula injection defense and strictly denies exporting pre-lock hidden submissions.
     """
     session = SessionService.get_session(db, session_id, current_user.user_id)
-    if session.status in ("draft", "collecting"):
+    if session.status in ("draft", "open", "collecting"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="CSV export is restricted until session lock and analysis completion.",
@@ -251,7 +293,6 @@ def export_session_csv(
     writer = csv.writer(output)
 
     def sanitize(val):
-        """Sanitizes spreadsheet formula injection (=, +, -, @)."""
         if val is None:
             return ""
         s = str(val)
@@ -277,20 +318,22 @@ def export_session_csv(
         writer.writerow([])
 
     # Write Divergences
-    writer.writerow(["Divergence ID", "Field", "Kind", "Review Status", "Summary"])
+    writer.writerow(["Divergence ID", "Category", "Field", "Severity", "Review Status", "Summary", "Explanation"])
     divergences = DivergenceService.get_session_divergences(db, session_id)
     for d in divergences:
         writer.writerow([
             sanitize(d.divergence_id),
+            sanitize(d.category or d.kind),
             sanitize(d.field_name),
-            sanitize(d.kind),
+            sanitize(d.severity or "medium"),
             sanitize(d.review_status),
             sanitize(d.evidence_json.get("summary", "")),
+            sanitize(d.evidence_json.get("explanation", "")),
         ])
     writer.writerow([])
 
     # Write Disclosed Stakeholder Submissions
-    writer.writerow(["Participant", "Perspective", "Delivery Hours", "Actor", "Expected Behavior", "Acceptance Criteria"])
+    writer.writerow(["Participant", "Perspective", "Delivery Hours", "Actor", "Expected Behavior", "Assumptions", "Acceptance Criteria", "Edge Cases", "Notes"])
     interps = SessionService.get_session_interpretations(db, session_id, current_user.user_id)
     for i in interps:
         writer.writerow([
@@ -299,7 +342,10 @@ def export_session_csv(
             sanitize(i.delivery_hours),
             sanitize(i.actor),
             sanitize(i.expected_behavior),
+            sanitize(i.assumptions),
             sanitize(i.acceptance_criteria),
+            sanitize(i.edge_cases),
+            sanitize(i.notes),
         ])
 
     from fastapi.responses import Response

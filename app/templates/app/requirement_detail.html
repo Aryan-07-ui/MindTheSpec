@@ -14,32 +14,55 @@
 <div class="page-header">
   <div>
     <h1>{{ requirement.req_code }}: {{ requirement.title }}</h1>
-    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
-      <span class="badge badge-collecting">{{ requirement.status }}</span>
-      <span style="font-size: 0.88rem; color: var(--text-muted);">Current: Version {{ requirement.version }}</span>
-      <span style="font-size: 0.88rem; color: var(--text-muted);">• Created: {{ requirement.created_at.strftime('%Y-%m-%d') if requirement.created_at else '-' }}</span>
+    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; flex-wrap: wrap;">
+      <span class="badge badge-collecting">{{ requirement.status | upper }}</span>
+      <span class="badge {% if requirement.priority == 'critical' %}badge-divergence{% elif requirement.priority == 'high' %}badge-locked{% else %}badge-draft{% endif %}">
+        Priority: {{ requirement.priority | upper }}
+      </span>
+      <span style="font-size: 0.88rem; color: var(--text-muted);">Version {{ requirement.version }}</span>
+      <span style="font-size: 0.88rem; color: var(--text-muted);">&bull; Created: {{ requirement.created_at.strftime('%Y-%m-%d') if requirement.created_at else '-' }}</span>
+      {% if requirement.creator %}
+      <span style="font-size: 0.88rem; color: var(--text-muted);">&bull; By: {{ requirement.creator.full_name }}</span>
+      {% endif %}
     </div>
   </div>
-  {% if role == 'owner' %}
-  <button type="button" class="btn btn-primary" onclick="startSession()">
-    + Start Blind Interpretation Session
-  </button>
-  {% endif %}
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    {% if role in ['owner', 'analyst'] %}
+    <a href="/app/requirements/{{ requirement.requirement_id }}/edit" class="btn btn-secondary">
+      Edit Requirement
+    </a>
+    <button type="button" class="btn btn-primary" onclick="startSession()">
+      + Start Blind Interpretation Session
+    </button>
+    {% endif %}
+  </div>
 </div>
 
 <div class="card">
   <div class="card-header">
-    <h2 class="card-title" style="margin: 0;">Requirement Text (Version {{ requirement.version }})</h2>
+    <h2 class="card-title" style="margin: 0;">Requirement Description (Version {{ requirement.version }})</h2>
   </div>
-  <div style="font-size: 1.05rem; line-height: 1.6; color: var(--text-main); white-space: pre-wrap; margin-bottom: 1rem;">
+  <div style="font-size: 1.05rem; line-height: 1.6; color: var(--text-main); white-space: pre-wrap; margin-bottom: 1.25rem;">
 {{ requirement.description }}
   </div>
+
+  {% if requirement.acceptance_criteria %}
+  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1.5px dashed var(--border-color);">
+    <h3 style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink-muted); margin-bottom: 0.5rem;">
+      Acceptance Criteria
+    </h3>
+    <div style="font-size: 0.98rem; line-height: 1.55; color: var(--text-main); white-space: pre-wrap; background-color: var(--bg-surface-alt); padding: 0.85rem 1.15rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+{{ requirement.acceptance_criteria }}
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- Sessions List -->
 <div class="card">
   <div class="card-header">
     <h3 style="margin: 0;">Interpretation Sessions</h3>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">Multi-stakeholder blind interpretation runs</span>
   </div>
 
   {% if sessions %}
@@ -48,7 +71,7 @@
       <thead>
         <tr>
           <th>Session ID</th>
-          <th>Status</th>
+          <th>State</th>
           <th>Mode</th>
           <th>Requirement Version</th>
           <th>Created</th>
@@ -60,32 +83,32 @@
         <tr>
           <td><strong>Session #{{ s.session_id }}</strong></td>
           <td>
-            {% if s.status == 'collecting' %}
-            <span class="badge badge-collecting">Collecting (Blind)</span>
+            {% if s.status in ['collecting', 'open'] %}
+            <span class="badge badge-collecting">OPEN (BLIND)</span>
             {% elif s.status == 'locked' %}
-            <span class="badge badge-locked">Locked</span>
-            {% elif s.status == 'analyzed' %}
-            <span class="badge badge-analyzed">Analyzed</span>
+            <span class="badge badge-locked">LOCKED</span>
+            {% elif s.status in ['analyzed', 'revealed'] %}
+            <span class="badge badge-analyzed">REVEALED</span>
             {% elif s.status == 'resolved' %}
-            <span class="badge badge-resolved">Resolved</span>
+            <span class="badge badge-resolved">RESOLVED</span>
             {% else %}
-            <span class="badge badge-draft">{{ s.status }}</span>
+            <span class="badge badge-draft">{{ s.status | upper }}</span>
             {% endif %}
           </td>
           <td>
             {% if s.mode == 'self_comparison' %}
-            <span class="badge badge-draft" style="background-color: #f0f4f8;">Self-Comparison</span>
+            <span class="badge badge-draft">Self-Comparison</span>
             {% else %}
-            Standard Stakeholders
+            Standard Team
             {% endif %}
           </td>
           <td>v{{ s.requirement_version.version_no }}</td>
           <td>{{ s.created_at.strftime('%Y-%m-%d %H:%M') if s.created_at else '-' }}</td>
           <td>
-            {% if s.status in ['locked', 'analyzed', 'resolved'] %}
-            <a href="/app/sessions/{{ s.session_id }}/compare" class="btn btn-secondary btn-sm">View Report</a>
+            {% if s.status in ['locked', 'analyzed', 'revealed', 'resolved'] %}
+            <a href="/app/sessions/{{ s.session_id }}/compare" class="btn btn-secondary btn-sm">View Report &rarr;</a>
             {% else %}
-            <a href="/app/sessions/{{ s.session_id }}" class="btn btn-primary btn-sm">Enter Session</a>
+            <a href="/app/sessions/{{ s.session_id }}" class="btn btn-primary btn-sm">Enter Session &rarr;</a>
             {% endif %}
           </td>
         </tr>
@@ -96,7 +119,7 @@
   {% else %}
   <div class="empty-state">
     <div class="empty-state-title">No sessions started yet</div>
-    <div class="empty-state-desc">Start a blind interpretation session to collect independent stakeholder perspectives.</div>
+    <div class="empty-state-desc">Start a blind interpretation session to invite team members to independently interpret this specification.</div>
   </div>
   {% endif %}
 </div>
@@ -104,7 +127,7 @@
 <!-- Requirement Version History (FR-10) -->
 <div class="card">
   <div class="card-header">
-    <h3 style="margin: 0;">Version History (FR-10)</h3>
+    <h3 style="margin: 0;">Version History &amp; Revisions</h3>
   </div>
   <div class="table-responsive">
     <table class="data-table">
@@ -113,6 +136,7 @@
           <th>Version</th>
           <th>Requirement Body</th>
           <th>Acceptance Notes</th>
+          <th>Created By</th>
           <th>Created At</th>
         </tr>
       </thead>
@@ -122,6 +146,7 @@
           <td><strong>v{{ v.version_no }}</strong></td>
           <td><div style="max-width: 500px; white-space: pre-wrap;">{{ v.body }}</div></td>
           <td>{{ v.acceptance_notes or '-' }}</td>
+          <td>{{ v.creator.full_name if v.creator else 'System' }}</td>
           <td>{{ v.created_at.strftime('%Y-%m-%d %H:%M') if v.created_at else '-' }}</td>
         </tr>
         {% endfor %}

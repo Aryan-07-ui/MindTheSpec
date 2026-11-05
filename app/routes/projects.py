@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectResponse, MemberAddRequest, MemberResponse
+from app.schemas.project import ProjectCreate, ProjectUpdate, ProjectResponse, MemberAddRequest, MemberResponse
 from app.schemas.requirement import RequirementCreate, RequirementResponse
 from app.schemas.audit import AuditLogResponse
 from app.services.auth_service import get_current_user
@@ -63,6 +63,36 @@ def get_project(
         status=p.status,
         created_at=p.created_at,
     )
+
+@router.put("/{project_id}", response_model=ProjectResponse)
+def update_project(
+    project_id: int,
+    payload: ProjectUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Updates project details. Rejects non-owners with 403."""
+    p = ProjectService.update_project(
+        db, project_id, current_user.user_id, payload.title, payload.description
+    )
+    return ProjectResponse(
+        id=p.project_id,
+        title=p.project_name,
+        description=p.description,
+        owner_id=p.owner_id,
+        status=p.status,
+        created_at=p.created_at,
+    )
+
+@router.delete("/{project_id}", status_code=status.HTTP_200_OK)
+def delete_project(
+    project_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deletes project. Rejects non-owners with 403."""
+    ProjectService.delete_project(db, project_id, current_user.user_id)
+    return {"message": "Project deleted successfully", "project_id": project_id}
 
 @router.get("/{project_id}/members", response_model=List[MemberResponse])
 def list_project_members(
@@ -128,9 +158,12 @@ def list_requirements(
             req_code=r.req_code,
             title=r.title,
             description=r.description,
+            acceptance_criteria=r.acceptance_criteria,
+            priority=r.priority,
             status=r.status,
             version=r.version,
             current_version_id=r.current_version_id,
+            created_by=r.created_by,
             created_at=r.created_at,
         )
         for r in reqs
@@ -143,7 +176,7 @@ def create_requirement(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Owner creates a requirement with initial version 1."""
+    """Owner or analyst creates a requirement with initial version 1."""
     req = RequirementService.create_requirement(
         db=db,
         project_id=project_id,
@@ -151,7 +184,8 @@ def create_requirement(
         req_code=payload.req_code,
         title=payload.title,
         description=payload.description,
-        acceptance_notes=payload.acceptance_notes,
+        acceptance_criteria=payload.acceptance_criteria or payload.acceptance_notes,
+        priority=payload.priority or "medium",
     )
     return RequirementResponse(
         id=req.requirement_id,
@@ -159,9 +193,12 @@ def create_requirement(
         req_code=req.req_code,
         title=req.title,
         description=req.description,
+        acceptance_criteria=req.acceptance_criteria,
+        priority=req.priority,
         status=req.status,
         version=req.version,
         current_version_id=req.current_version_id,
+        created_by=req.created_by,
         created_at=req.created_at,
     )
 

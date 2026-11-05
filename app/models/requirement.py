@@ -10,7 +10,10 @@ class Requirement(Base):
     req_code = Column(String(50), nullable=False, default="REQ-001")
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
-    status = Column(String(20), nullable=False, default="draft")  # draft, active, resolved, archived
+    acceptance_criteria = Column(Text, nullable=True)
+    priority = Column(String(20), nullable=False, default="medium")  # low, medium, high, critical
+    status = Column(String(20), nullable=False, default="active")  # draft, active, resolved, archived
+    created_by = Column(Integer, ForeignKey("users.user_id"), nullable=True)
     version = Column(Integer, nullable=False, default=1)
     current_version_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
@@ -25,6 +28,7 @@ class Requirement(Base):
         return self.requirement_id
 
     project = relationship("Project", back_populates="requirements")
+    creator = relationship("User", foreign_keys=[created_by])
     versions = relationship("RequirementVersion", back_populates="requirement", cascade="all, delete-orphan", order_by="RequirementVersion.version_no")
     interpretations = relationship("Interpretation", back_populates="requirement")
 

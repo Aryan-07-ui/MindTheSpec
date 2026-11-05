@@ -8,6 +8,8 @@ class DivergenceResponse(BaseModel):
     session_id: int
     field_name: str
     kind: str
+    category: Optional[str] = None
+    severity: str = "medium"
     evidence_json: Dict[str, Any]
     review_status: str
     fingerprint: str

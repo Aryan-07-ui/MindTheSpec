@@ -8,7 +8,7 @@ class InterpretationSession(Base):
     session_id = Column(Integer, primary_key=True, autoincrement=True)
     requirement_version_id = Column(Integer, ForeignKey("requirement_versions.version_id"), nullable=False, index=True)
     created_by = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    status = Column(String(20), nullable=False, default="draft")  # draft, collecting, locked, analyzed, resolved
+    status = Column(String(20), nullable=False, default="open")  # open/collecting, locked, revealed/analyzed, resolved
     mode = Column(String(20), nullable=False, default="standard")  # standard, self_comparison
     locked_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
@@ -41,6 +41,8 @@ class Interpretation(Base):
     acceptance_criteria = Column(Text, nullable=True)
     interpretation_text = Column(Text, nullable=True)
     assumptions = Column(Text, nullable=True)
+    edge_cases = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
     submitted_at = Column(DateTime, server_default=func.now())
 
     __table_args__ = (

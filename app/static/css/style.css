@@ -284,6 +284,217 @@ body {
   padding: 2.25rem 1.5rem;
 }
 
+/* ==========================================================================
+   4. Application Workspace Shell (Sidebar Navigation & Responsive Layout)
+   ========================================================================== */
+.app-container {
+  display: flex;
+  flex: 1;
+  width: 100%;
+  min-height: calc(100vh - 72px);
+}
+
+.app-sidebar {
+  width: 260px;
+  background-color: var(--bg-surface);
+  border-right: 1.5px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: transform 0.25s ease, background-color 0.25s ease;
+  z-index: 90;
+}
+
+.sidebar-header {
+  padding: 1.5rem 1.25rem 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-title {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.sidebar-nav {
+  padding: 1.25rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-md);
+  color: var(--ink-body);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar-link svg {
+  color: var(--ink-muted);
+  transition: color 0.15s ease;
+}
+
+.sidebar-link:hover {
+  background-color: var(--bg-surface-alt);
+  color: var(--accent-grape);
+}
+
+.sidebar-link:hover svg {
+  color: var(--accent-grape);
+}
+
+.sidebar-link.active {
+  background-color: var(--accent-grape-light);
+  color: var(--accent-grape);
+  font-weight: 700;
+}
+
+.sidebar-link.active svg {
+  color: var(--accent-grape);
+}
+
+.sidebar-section-heading {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  padding: 1.25rem 0.9rem 0.4rem 0.9rem;
+}
+
+.sidebar-footer {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface-panel);
+}
+
+.sidebar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-grape);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.user-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--ink-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-mobile-bar {
+  display: none;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-canvas);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  color: var(--ink-main);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.app-main {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0;
+  padding: 2rem 2.5rem;
+}
+
+/* Tablet & Mobile Responsiveness */
+@media (max-width: 900px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+  }
+
+  .app-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .app-mobile-bar {
+    display: block;
+  }
+
+  .app-main {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
 /* Breadcrumbs */
 .breadcrumbs {
   display: flex;

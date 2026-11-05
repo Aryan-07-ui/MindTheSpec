@@ -12,10 +12,10 @@
 <div class="page-header">
   <div>
     <h1>{{ project.project_name }}</h1>
-    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
-      <span class="badge badge-collecting">{{ project.status }}</span>
+    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; flex-wrap: wrap;">
+      <span class="badge badge-collecting">{{ project.status | upper }}</span>
       <span style="font-size: 0.88rem; color: var(--text-muted);">Your Role: <strong>{{ role.upper() }}</strong></span>
-      <span style="font-size: 0.88rem; color: var(--text-muted);">• Owner: {{ project.owner.full_name }}</span>
+      <span style="font-size: 0.88rem; color: var(--text-muted);">&bull; Owner: {{ project.owner.full_name }}</span>
     </div>
     {% if project.description %}
     <p style="margin-top: 0.75rem; color: var(--text-muted); max-width: 780px;">{{ project.description }}</p>
@@ -24,6 +24,9 @@
   <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
     <a href="/app/projects/{{ project.project_id }}/history" class="btn btn-secondary">Audit Trail</a>
     {% if role == 'owner' %}
+    <a href="/app/projects/{{ project.project_id }}/edit" class="btn btn-secondary">Edit Project</a>
+    {% endif %}
+    {% if role in ['owner', 'analyst'] %}
     <button type="button" class="btn btn-primary" onclick="document.getElementById('new-req-card').scrollIntoView({behavior:'smooth'}); document.getElementById('req-code').focus();">
       + Add Requirement
     </button>
@@ -31,9 +34,11 @@
   </div>
 </div>
 
+<!-- Requirements Card -->
 <div class="card">
   <div class="card-header">
     <h2 class="card-title" style="margin: 0;">Requirements</h2>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">{{ requirements | length }} total specifications</span>
   </div>
 
   {% if requirements %}
@@ -43,9 +48,10 @@
         <tr>
           <th>Code</th>
           <th>Requirement Title</th>
+          <th>Priority</th>
           <th>Status</th>
           <th>Version</th>
-          <th>Action</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -56,12 +62,24 @@
             <a href="/app/requirements/{{ r.requirement_id }}" style="color: var(--accent-grape); text-decoration: none; font-weight: 700;">
               {{ r.title }}
             </a>
-            <div style="font-size: 0.84rem; color: var(--ink-muted); margin-top: 0.2rem;">{{ r.description[:90] }}{% if r.description|length > 90 %}...{% endif %}</div>
+            <div style="font-size: 0.84rem; color: var(--ink-muted); margin-top: 0.2rem;">
+              {{ r.description[:90] }}{% if r.description|length > 90 %}...{% endif %}
+            </div>
           </td>
-          <td><span class="badge badge-collecting">{{ r.status }}</span></td>
+          <td>
+            <span class="badge {% if r.priority == 'critical' %}badge-divergence{% elif r.priority == 'high' %}badge-locked{% else %}badge-draft{% endif %}">
+              {{ r.priority | upper }}
+            </span>
+          </td>
+          <td><span class="badge badge-collecting">{{ r.status | upper }}</span></td>
           <td>v{{ r.version }}</td>
           <td>
-            <a href="/app/requirements/{{ r.requirement_id }}" class="btn btn-secondary btn-sm">View Details &amp; Sessions</a>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <a href="/app/requirements/{{ r.requirement_id }}" class="btn btn-secondary btn-sm">View Details &amp; Sessions</a>
+              {% if role in ['owner', 'analyst'] %}
+              <a href="/app/requirements/{{ r.requirement_id }}/edit" class="btn btn-secondary btn-sm" title="Edit">Edit</a>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -76,30 +94,39 @@
   {% endif %}
 </div>
 
-{% if role == 'owner' %}
+{% if role in ['owner', 'analyst'] %}
 <!-- Add Requirement Card -->
 <div class="card" id="new-req-card">
   <div class="card-header">
     <h3 style="margin: 0;">Add New Requirement</h3>
   </div>
   <form id="createRequirementForm">
-    <div style="display: grid; grid-template-columns: 160px 1fr; gap: 1rem;">
+    <div style="display: grid; grid-template-columns: 140px 1fr 140px; gap: 1rem;">
       <div class="form-group">
         <label for="req-code" class="form-label">Req Code</label>
         <input type="text" id="req-code" class="form-control" required placeholder="REQ-001">
       </div>
       <div class="form-group">
         <label for="req-title" class="form-label">Requirement Title</label>
-        <input type="text" id="req-title" class="form-control" required placeholder="e.g. Fast Delivery Support">
+        <input type="text" id="req-title" class="form-control" required placeholder="e.g. Real-Time Order Tracking">
+      </div>
+      <div class="form-group">
+        <label for="req-priority" class="form-label">Priority</label>
+        <select id="req-priority" class="form-control">
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+          <option value="low">Low</option>
+        </select>
       </div>
     </div>
     <div class="form-group">
       <label for="req-desc" class="form-label">Requirement Description / Body</label>
-      <textarea id="req-desc" class="form-control" required placeholder="The system must support fast delivery for qualifying customer orders."></textarea>
+      <textarea id="req-desc" class="form-control" rows="4" required placeholder="Detailed description of what the system must do..."></textarea>
     </div>
     <div class="form-group">
-      <label for="req-notes" class="form-label">Acceptance Notes (optional)</label>
-      <input type="text" id="req-notes" class="form-control" placeholder="Context or operational goals...">
+      <label for="req-crit" class="form-label">Acceptance Criteria</label>
+      <textarea id="req-crit" class="form-control" rows="2" placeholder="Specific testable verification criteria..."></textarea>
     </div>
     <button type="submit" class="btn btn-primary">Save Requirement</button>
   </form>
@@ -109,7 +136,8 @@
 <!-- Project Members Card -->
 <div class="card">
   <div class="card-header">
-    <h3 style="margin: 0;">Project Stakeholders &amp; Members</h3>
+    <h3 style="margin: 0;">Project Stakeholders &amp; Team</h3>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">{{ members | length }} authorized members</span>
   </div>
   <div class="table-responsive">
     <table class="data-table">
@@ -119,6 +147,9 @@
           <th>Email</th>
           <th>Role</th>
           <th>Joined</th>
+          {% if role == 'owner' %}
+          <th>Action</th>
+          {% endif %}
         </tr>
       </thead>
       <tbody>
@@ -126,8 +157,24 @@
         <tr>
           <td><strong>{{ m.user.full_name }}</strong></td>
           <td>{{ m.user.email }}</td>
-          <td><span class="badge badge-draft">{{ m.role }}</span></td>
+          <td>
+            <span class="badge {% if m.role == 'owner' %}badge-resolved{% elif m.role == 'analyst' %}badge-analyzed{% else %}badge-draft{% endif %}">
+              {{ m.role | upper }}
+            </span>
+          </td>
           <td>{{ m.joined_at.strftime('%Y-%m-%d') if m.joined_at else '-' }}</td>
+          {% if role == 'owner' %}
+          <td>
+            {% if m.user_id != project.owner_id %}
+            <form method="POST" action="/app/projects/{{ project.project_id }}/members/remove" onsubmit="return confirm('Remove {{ m.user.full_name }} from project?');" style="display:inline;">
+              <input type="hidden" name="user_id" value="{{ m.user_id }}">
+              <button type="submit" class="btn btn-secondary btn-sm" style="color: var(--color-danger, #dc2626);">Remove</button>
+            </form>
+            {% else %}
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Owner</span>
+            {% endif %}
+          </td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>
@@ -135,10 +182,10 @@
   </div>
 
   {% if role == 'owner' %}
-  <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+  <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color);">
     <h4 style="font-size: 0.95rem; margin-bottom: 0.75rem;">Add Stakeholder to Project</h4>
     <form id="addMemberForm" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-      <input type="email" id="member-email" class="form-control" style="max-width: 280px;" required placeholder="registered.user@domain.com">
+      <input type="email" id="member-email" class="form-control" style="max-width: 280px;" required placeholder="registered.user@example.com">
       <select id="member-role" class="form-control" style="max-width: 160px;">
         <option value="developer">Developer</option>
         <option value="tester">Tester</option>
@@ -154,52 +201,61 @@
 
 {% block scripts %}
 <script>
+{% if role in ['owner', 'analyst'] %}
+const createReqForm = document.getElementById('createRequirementForm');
+if (createReqForm) {
+  createReqForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const req_code = document.getElementById('req-code').value.trim();
+    const title = document.getElementById('req-title').value.trim();
+    const description = document.getElementById('req-desc').value.trim();
+    const priority = document.getElementById('req-priority').value;
+    const acceptance_criteria = document.getElementById('req-crit').value.trim();
+
+    try {
+      const res = await fetch('/api/projects/{{ project.project_id }}/requirements', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({req_code, title, description, priority, acceptance_criteria})
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.detail || 'Could not save requirement'));
+      }
+    } catch (ex) {
+      alert('Network error: ' + ex.message);
+    }
+  });
+}
+{% endif %}
+
 {% if role == 'owner' %}
-document.getElementById('createRequirementForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const req_code = document.getElementById('req-code').value.trim();
-  const title = document.getElementById('req-title').value.trim();
-  const description = document.getElementById('req-desc').value.trim();
-  const acceptance_notes = document.getElementById('req-notes').value.trim();
+const addMemberForm = document.getElementById('addMemberForm');
+if (addMemberForm) {
+  addMemberForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('member-email').value.trim();
+    const role = document.getElementById('member-role').value;
 
-  try {
-    const res = await fetch('/api/projects/{{ project.project_id }}/requirements', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({req_code, title, description, acceptance_notes})
-    });
-    if (res.ok) {
-      window.location.reload();
-    } else {
-      const err = await res.json();
-      alert('Error: ' + (err.detail || 'Could not save requirement'));
+    try {
+      const res = await fetch('/api/projects/{{ project.project_id }}/members', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, role})
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        const err = await res.json();
+        alert('Error: ' + (err.detail || 'Could not add member'));
+      }
+    } catch (ex) {
+      alert('Network error: ' + ex.message);
     }
-  } catch (ex) {
-    alert('Network error: ' + ex.message);
-  }
-});
-
-document.getElementById('addMemberForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const email = document.getElementById('member-email').value.trim();
-  const role = document.getElementById('member-role').value;
-
-  try {
-    const res = await fetch('/api/projects/{{ project.project_id }}/members', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, role})
-    });
-    if (res.ok) {
-      window.location.reload();
-    } else {
-      const err = await res.json();
-      alert('Error: ' + (err.detail || 'Could not add member'));
-    }
-  } catch (ex) {
-    alert('Network error: ' + ex.message);
-  }
-});
+  });
+}
 {% endif %}
 </script>
 {% endblock %}

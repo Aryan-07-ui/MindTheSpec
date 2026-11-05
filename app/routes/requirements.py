@@ -4,7 +4,13 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.user import User
-from app.schemas.requirement import RequirementResponse, VersionResponse, RevisionCreate
+from app.schemas.requirement import (
+    RequirementCreate,
+    RequirementUpdate,
+    RequirementResponse,
+    VersionResponse,
+    RevisionCreate,
+)
 from app.schemas.session import SessionCreate, SessionResponse
 from app.services.auth_service import get_current_user
 from app.services.requirement_service import RequirementService
@@ -26,11 +32,57 @@ def get_requirement(
         req_code=r.req_code,
         title=r.title,
         description=r.description,
+        acceptance_criteria=r.acceptance_criteria,
+        priority=r.priority,
         status=r.status,
         version=r.version,
         current_version_id=r.current_version_id,
+        created_by=r.created_by,
         created_at=r.created_at,
     )
+
+@router.put("/{requirement_id}", response_model=RequirementResponse)
+def update_requirement(
+    requirement_id: int,
+    payload: RequirementUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Updates requirement details. Permitted for owners and analysts."""
+    r = RequirementService.update_requirement(
+        db=db,
+        requirement_id=requirement_id,
+        user_id=current_user.user_id,
+        title=payload.title,
+        description=payload.description,
+        acceptance_criteria=payload.acceptance_criteria,
+        priority=payload.priority,
+        status_val=payload.status,
+    )
+    return RequirementResponse(
+        id=r.requirement_id,
+        project_id=r.project_id,
+        req_code=r.req_code,
+        title=r.title,
+        description=r.description,
+        acceptance_criteria=r.acceptance_criteria,
+        priority=r.priority,
+        status=r.status,
+        version=r.version,
+        current_version_id=r.current_version_id,
+        created_by=r.created_by,
+        created_at=r.created_at,
+    )
+
+@router.delete("/{requirement_id}", status_code=status.HTTP_200_OK)
+def delete_requirement(
+    requirement_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Deletes requirement. Restricted to project owner."""
+    RequirementService.delete_requirement(db, requirement_id, current_user.user_id)
+    return {"message": "Requirement deleted successfully", "requirement_id": requirement_id}
 
 @router.get("/{requirement_id}/versions", response_model=List[VersionResponse])
 def list_versions(
@@ -59,7 +111,7 @@ def create_session(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Owner starts a new blind interpretation session tied to this requirement."""
+    """Owner or analyst starts a new blind interpretation session tied to this requirement."""
     session = SessionService.create_session(
         db=db,
         requirement_id=requirement_id,
@@ -84,7 +136,7 @@ def create_revision(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    """Owner creates an updated version of the requirement."""
+    """Owner or analyst creates an updated version of the requirement."""
     v = RequirementService.create_revision(
         db=db,
         requirement_id=requirement_id,

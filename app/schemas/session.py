@@ -10,10 +10,13 @@ class InterpretationCreate(BaseModel):
     perspective: str = Field(min_length=2, max_length=100)
     actor: Optional[str] = Field(default=None, max_length=100)
     expected_behavior: str = Field(min_length=5)
+    assumptions: Optional[str] = None
     trigger_conditions: Optional[str] = None
     delivery_hours: Optional[int] = Field(default=None, gt=0, le=10000)
     constraints: Optional[str] = None
     acceptance_criteria: Optional[str] = None
+    edge_cases: Optional[str] = None
+    notes: Optional[str] = None
 
 class InterpretationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -23,10 +26,13 @@ class InterpretationResponse(BaseModel):
     perspective: str
     actor: Optional[str] = None
     expected_behavior: str
+    assumptions: Optional[str] = None
     trigger_conditions: Optional[str] = None
     delivery_hours: Optional[int] = None
     constraints: Optional[str] = None
     acceptance_criteria: Optional[str] = None
+    edge_cases: Optional[str] = None
+    notes: Optional[str] = None
     submitted_at: Optional[datetime] = None
 
 class SessionResponse(BaseModel):

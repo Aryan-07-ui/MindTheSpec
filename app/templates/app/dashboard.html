@@ -38,8 +38,9 @@
 </div>
 
 <div class="card">
-  <div class="card-header">
+  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
     <h2 class="card-title" style="margin: 0;">Projects</h2>
+    <span style="font-size: 0.88rem; color: var(--ink-muted); font-weight: 600;">{{ projects|length }} total</span>
   </div>
 
   {% if projects %}
@@ -67,7 +68,12 @@
           <td><strong style="color: var(--ink-main);">{{ p.requirements | length }}</strong></td>
           <td><span style="color: var(--ink-muted);">{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '-' }}</span></td>
           <td>
-            <a href="/app/projects/{{ p.project_id }}" class="btn btn-secondary btn-sm">Open Project</a>
+            <div style="display: flex; gap: 0.4rem; align-items: center;">
+              <a href="/app/projects/{{ p.project_id }}" class="btn btn-secondary btn-sm">Open</a>
+              {% if p.owner_id == current_user.user_id %}
+              <a href="/app/projects/{{ p.project_id }}/edit" class="btn btn-secondary btn-sm" title="Edit Project Settings">Edit</a>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% endfor %}
@@ -75,28 +81,34 @@
     </table>
   </div>
   {% else %}
-  <div class="empty-state">
-    <div class="empty-state-title">No projects accessible yet</div>
-    <div class="empty-state-desc">Create your first project below to start recording requirements and collecting blind stakeholder interpretations.</div>
+  <div class="empty-state" style="padding: 3rem 1.5rem; text-align: center;">
+    <div style="width: 56px; height: 56px; border-radius: var(--radius-pill); background: var(--bg-surface-alt); color: var(--signature-outline); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+    </div>
+    <div class="empty-state-title" style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem;">No projects accessible yet</div>
+    <div class="empty-state-desc" style="color: var(--ink-muted); max-width: 480px; margin: 0 auto 1.5rem auto;">Create your first project below to start recording requirements and collecting blind stakeholder interpretations.</div>
+    <button type="button" class="btn btn-primary" onclick="document.getElementById('project-title').focus();">
+      + Create Your First Project
+    </button>
   </div>
   {% endif %}
 </div>
 
 <!-- Create Project Form Card -->
-<div class="card" id="new-project-card">
+<div class="card" id="new-project-card" style="margin-top: 2rem;">
   <div class="card-header">
     <h3 style="margin: 0;">Create New Project</h3>
   </div>
-  <form id="createProjectForm">
-    <div class="form-group">
-      <label for="project-title" class="form-label">Project Title</label>
-      <input type="text" id="project-title" class="form-control" required placeholder="e.g. Online Shopping Checkout Workflow">
+  <form id="createProjectForm" action="/app/projects/create" method="POST">
+    <div class="form-group" style="margin-bottom: 1.25rem;">
+      <label for="project-title" class="form-label" style="display: block; font-weight: 700; margin-bottom: 0.35rem; color: var(--ink-main);">Project Title</label>
+      <input type="text" id="project-title" name="title" class="form-control" required minlength="2" maxlength="150" placeholder="e.g. Online Shopping Checkout Workflow" style="width: 100%;">
     </div>
-    <div class="form-group">
-      <label for="project-desc" class="form-label">Description (optional)</label>
-      <textarea id="project-desc" class="form-control" placeholder="Context, scope, and objectives for this project..."></textarea>
+    <div class="form-group" style="margin-bottom: 1.5rem;">
+      <label for="project-desc" class="form-label" style="display: block; font-weight: 700; margin-bottom: 0.35rem; color: var(--ink-main);">Description (optional)</label>
+      <textarea id="project-desc" name="description" class="form-control" rows="3" maxlength="5000" placeholder="Context, scope, and objectives for this project..." style="width: 100%;"></textarea>
     </div>
-    <button type="submit" class="btn btn-primary">Create Project</button>
+    <button type="submit" id="createProjectBtn" class="btn btn-primary" data-loading-text="Creating Project...">Create Project</button>
   </form>
 </div>
 {% endblock %}
@@ -104,26 +116,36 @@
 {% block scripts %}
 <script>
 document.getElementById('createProjectForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const title = document.getElementById('project-title').value.trim();
-  const description = document.getElementById('project-desc').value.trim();
-  if (!title) return;
+  // If browser supports fetch, use async creation for instant UX feedback; otherwise standard POST runs
+  if (window.fetch) {
+    e.preventDefault();
+    const btn = document.getElementById('createProjectBtn');
+    const title = document.getElementById('project-title').value.trim();
+    const description = document.getElementById('project-desc').value.trim();
+    if (!title) return;
 
-  try {
-    const res = await fetch('/api/projects', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({title, description})
-    });
-    if (res.ok) {
-      const data = await res.json();
-      window.location.href = '/app/projects/' + data.id;
-    } else {
-      const err = await res.json();
-      alert('Error creating project: ' + (err.detail || 'Failed'));
+    btn.disabled = true;
+    btn.innerText = 'Creating project...';
+
+    try {
+      const res = await fetch('/api/projects', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title, description})
+      });
+      if (res.ok) {
+        const data = await res.json();
+        window.location.href = '/app/projects/' + data.id;
+      } else {
+        const err = await res.json();
+        alert('Error creating project: ' + (err.detail || 'Failed'));
+        btn.disabled = false;
+        btn.innerText = 'Create Project';
+      }
+    } catch (ex) {
+      // Fallback to normal form submit on network exception
+      this.submit();
     }
-  } catch (ex) {
-    alert('Network error: ' + ex.message);
   }
 });
 </script>

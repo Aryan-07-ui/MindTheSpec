@@ -133,7 +133,7 @@ def dashboard_view(request: Request, db: Session = Depends(get_db)):
         db.query(InterpretationSession)
         .join(RequirementVersion, InterpretationSession.requirement_version_id == RequirementVersion.version_id)
         .join(Requirement, RequirementVersion.requirement_id == Requirement.requirement_id)
-        .filter(Requirement.project_id.in_(project_ids), InterpretationSession.status == "collecting")
+        .filter(Requirement.project_id.in_(project_ids), InterpretationSession.status.in_(["collecting", "open"]))
         .count()
         if project_ids
         else 0
@@ -189,6 +189,102 @@ def project_detail_view(project_id: int, request: Request, db: Session = Depends
         },
     )
 
+@router.post("/app/projects/create")
+def project_create_action(
+    request: Request,
+    title: str = Form(...),
+    description: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        project = ProjectService.create_project(db, title=title, description=description, owner_id=user.user_id)
+        return RedirectResponse(url=f"/app/projects/{project.project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url="/app?error=" + str(e.detail), status_code=status.HTTP_303_SEE_OTHER)
+
+@router.get("/app/projects/{project_id}/edit", response_class=HTMLResponse)
+def project_edit_view(project_id: int, request: Request, error: Optional[str] = None, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    project = ProjectService.require_owner(db, project_id, user.user_id)
+    return templates.TemplateResponse(
+        request=request,
+        name="app/project_edit.html",
+        context={
+            "request": request,
+            "current_user": user,
+            "project": project,
+            "error": error,
+            "title": f"Edit {project.project_name} — MindTheSpec",
+        },
+    )
+
+@router.post("/app/projects/{project_id}/edit")
+def project_edit_action(
+    project_id: int,
+    request: Request,
+    title: str = Form(...),
+    description: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        ProjectService.update_project(db, project_id, user.user_id, title=title, description=description)
+        return RedirectResponse(url=f"/app/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        project, _ = ProjectService.require_member(db, project_id, user.user_id)
+        return templates.TemplateResponse(
+            request=request,
+            name="app/project_edit.html",
+            context={
+                "request": request,
+                "current_user": user,
+                "project": project,
+                "error": e.detail,
+                "title": f"Edit {project.project_name} — MindTheSpec",
+            },
+            status_code=e.status_code,
+        )
+
+@router.post("/app/projects/{project_id}/delete")
+def project_delete_action(
+    project_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    ProjectService.delete_project(db, project_id, user.user_id)
+    return RedirectResponse(url="/app", status_code=status.HTTP_303_SEE_OTHER)
+
+@router.post("/app/projects/{project_id}/members/add")
+def project_member_add_action(
+    project_id: int,
+    request: Request,
+    email: str = Form(...),
+    role: str = Form("developer"),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        ProjectService.add_member(db, project_id, user.user_id, email, role)
+        return RedirectResponse(url=f"/app/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url=f"/app/projects/{project_id}?error={e.detail}", status_code=status.HTTP_303_SEE_OTHER)
+
+@router.post("/app/projects/{project_id}/members/remove")
+def project_member_remove_action(
+    project_id: int,
+    request: Request,
+    user_id: int = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        ProjectService.remove_member(db, project_id, user.user_id, user_id)
+        return RedirectResponse(url=f"/app/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url=f"/app/projects/{project_id}?error={e.detail}", status_code=status.HTTP_303_SEE_OTHER)
+
 @router.get("/app/requirements/{requirement_id}", response_class=HTMLResponse)
 def requirement_detail_view(requirement_id: int, request: Request, db: Session = Depends(get_db)):
     user = require_auth(request, db)
@@ -215,18 +311,106 @@ def requirement_detail_view(requirement_id: int, request: Request, db: Session =
         },
     )
 
+@router.get("/app/requirements/{requirement_id}/edit", response_class=HTMLResponse)
+def requirement_edit_view(requirement_id: int, request: Request, error: Optional[str] = None, db: Session = Depends(get_db)):
+    user = require_auth(request, db)
+    req = RequirementService.get_requirement(db, requirement_id, user.user_id)
+    role = ProjectService.get_user_role(db, req.project_id, user.user_id)
+    if role not in ("owner", "analyst"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only owners and analysts can edit requirements")
+    return templates.TemplateResponse(
+        request=request,
+        name="app/requirement_edit.html",
+        context={
+            "request": request,
+            "current_user": user,
+            "requirement": req,
+            "role": role,
+            "error": error,
+            "title": f"Edit {req.req_code} — MindTheSpec",
+        },
+    )
+
+@router.post("/app/requirements/{requirement_id}/edit")
+def requirement_edit_action(
+    requirement_id: int,
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(...),
+    acceptance_criteria: Optional[str] = Form(None),
+    priority: Optional[str] = Form("medium"),
+    status: Optional[str] = Form("active"),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        RequirementService.update_requirement(
+            db=db,
+            requirement_id=requirement_id,
+            user_id=user.user_id,
+            title=title,
+            description=description,
+            acceptance_criteria=acceptance_criteria,
+            priority=priority,
+            status_val=status,
+        )
+        return RedirectResponse(url=f"/app/requirements/{requirement_id}", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        req = RequirementService.get_requirement(db, requirement_id, user.user_id)
+        role = ProjectService.get_user_role(db, req.project_id, user.user_id)
+        return templates.TemplateResponse(
+            request=request,
+            name="app/requirement_edit.html",
+            context={
+                "request": request,
+                "current_user": user,
+                "requirement": req,
+                "role": role,
+                "error": e.detail,
+                "title": f"Edit {req.req_code} — MindTheSpec",
+            },
+            status_code=e.status_code,
+        )
+
+@router.post("/app/requirements/{requirement_id}/delete")
+def requirement_delete_action(
+    requirement_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    req = RequirementService.get_requirement(db, requirement_id, user.user_id)
+    project_id = req.project_id
+    RequirementService.delete_requirement(db, requirement_id, user.user_id)
+    return RedirectResponse(url=f"/app/projects/{project_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+@router.post("/app/requirements/{requirement_id}/sessions/create")
+def requirement_create_session_action(
+    requirement_id: int,
+    request: Request,
+    mode: str = Form("standard"),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    session = SessionService.create_session(db, requirement_id, user.user_id, mode=mode)
+    return RedirectResponse(url=f"/app/sessions/{session.session_id}", status_code=status.HTTP_303_SEE_OTHER)
+
 @router.get("/app/sessions/{session_id}", response_class=HTMLResponse)
 def session_detail_view(session_id: int, request: Request, db: Session = Depends(get_db)):
     """FR-04: Blind interpretation collection view."""
     user = require_auth(request, db)
     session = SessionService.get_session(db, session_id, user.user_id)
-    role = ProjectService.get_user_role(db, session.requirement_version.requirement.project_id, user.user_id)
+    project_id = session.requirement_version.requirement.project_id
+    role = ProjectService.get_user_role(db, project_id, user.user_id)
 
     # Safe participation summary (counts only)
     participation = SessionService.get_participation_summary(db, session_id)
 
-    # Server-side filtered interpretations (own only before lock!)
+    # Server-side filtered interpretations (own only before lock/reveal!)
     my_interpretations = SessionService.get_session_interpretations(db, session_id, user.user_id)
+
+    # Project members for progress status
+    members = db.query(ProjectMember).filter(ProjectMember.project_id == project_id).all()
 
     return templates.TemplateResponse(
         request=request,
@@ -238,18 +422,83 @@ def session_detail_view(session_id: int, request: Request, db: Session = Depends
             "role": role,
             "participation": participation,
             "my_interpretations": my_interpretations,
+            "members": members,
             "title": f"Session #{session.session_id} ({session.status.upper()}) — MindTheSpec",
         },
     )
 
+@router.post("/app/sessions/{session_id}/submit")
+def session_submit_action(
+    session_id: int,
+    request: Request,
+    perspective: str = Form(...),
+    expected_behavior: str = Form(...),
+    assumptions: Optional[str] = Form(None),
+    acceptance_criteria: Optional[str] = Form(None),
+    edge_cases: Optional[str] = Form(None),
+    notes: Optional[str] = Form(None),
+    actor: Optional[str] = Form(None),
+    delivery_hours: Optional[str] = Form(None),
+    trigger_conditions: Optional[str] = Form(None),
+    constraints: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    hours_int = int(delivery_hours) if delivery_hours and delivery_hours.strip().isdigit() else None
+    try:
+        SessionService.submit_interpretation(
+            db=db,
+            session_id=session_id,
+            user_id=user.user_id,
+            perspective=perspective,
+            expected_behavior=expected_behavior,
+            assumptions=assumptions,
+            acceptance_criteria=acceptance_criteria,
+            edge_cases=edge_cases,
+            notes=notes,
+            actor=actor,
+            trigger_conditions=trigger_conditions,
+            delivery_hours=hours_int,
+            constraints=constraints,
+        )
+        return RedirectResponse(url=f"/app/sessions/{session_id}", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url=f"/app/sessions/{session_id}?error={e.detail}", status_code=status.HTTP_303_SEE_OTHER)
+
+@router.post("/app/sessions/{session_id}/lock")
+def session_lock_action(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        SessionService.lock_session(db, session_id, user.user_id)
+        return RedirectResponse(url=f"/app/sessions/{session_id}/compare", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url=f"/app/sessions/{session_id}?error={e.detail}", status_code=status.HTTP_303_SEE_OTHER)
+
+@router.post("/app/sessions/{session_id}/reveal")
+def session_reveal_action(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        SessionService.reveal_session(db, session_id, user.user_id)
+        return RedirectResponse(url=f"/app/sessions/{session_id}/compare", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url=f"/app/sessions/{session_id}?error={e.detail}", status_code=status.HTTP_303_SEE_OTHER)
+
 @router.get("/app/sessions/{session_id}/compare", response_class=HTMLResponse)
 def session_compare_view(session_id: int, request: Request, db: Session = Depends(get_db)):
-    """FR-05: Side-by-side evidence & divergence findings view (locked sessions only)."""
+    """FR-05: Side-by-side evidence & divergence findings view (locked/revealed sessions only)."""
     user = require_auth(request, db)
     session = SessionService.get_session(db, session_id, user.user_id)
     role = ProjectService.get_user_role(db, session.requirement_version.requirement.project_id, user.user_id)
 
-    if session.status in ("draft", "collecting"):
+    if session.status in ("draft", "open", "collecting"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Session is still collecting interpretations. Divergence analysis is confidential until session lock.",
@@ -296,6 +545,33 @@ def session_resolution_view(session_id: int, request: Request, db: Session = Dep
             "title": f"Resolution: Session #{session.session_id} — MindTheSpec",
         },
     )
+
+@router.post("/app/sessions/{session_id}/resolution")
+def session_resolution_action(
+    session_id: int,
+    request: Request,
+    statement: str = Form(...),
+    rationale: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    try:
+        ResolutionService.record_resolution(db, session_id, user.user_id, statement, rationale)
+        return RedirectResponse(url=f"/app/sessions/{session_id}/compare", status_code=status.HTTP_303_SEE_OTHER)
+    except HTTPException as e:
+        return RedirectResponse(url=f"/app/sessions/{session_id}/resolution?error={e.detail}", status_code=status.HTTP_303_SEE_OTHER)
+
+@router.post("/app/divergences/{divergence_id}/resolve")
+def divergence_resolve_action(
+    divergence_id: int,
+    request: Request,
+    next: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    user = require_auth(request, db)
+    div = ResolutionService.resolve_divergence(db, divergence_id, user.user_id, "resolved")
+    redirect_target = next if next and next.startswith("/") else f"/app/sessions/{div.session_id}/compare"
+    return RedirectResponse(url=redirect_target, status_code=status.HTTP_303_SEE_OTHER)
 
 @router.get("/app/projects/{project_id}/history", response_class=HTMLResponse)
 def project_history_view(project_id: int, request: Request, db: Session = Depends(get_db)):

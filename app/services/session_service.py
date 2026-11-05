@@ -18,16 +18,20 @@ class SessionService:
         version_id: Optional[int] = None,
         mode: str = "standard",
     ) -> InterpretationSession:
-        """Owner creates a new blind interpretation session tied to a specific requirement version."""
+        """Owner or analyst starts a new blind interpretation session tied to a specific requirement version."""
         req = db.query(Requirement).filter(Requirement.requirement_id == requirement_id).first()
         if not req:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Requirement not found")
 
-        ProjectService.require_owner(db, req.project_id, user_id)
+        project, role = ProjectService.require_member(db, req.project_id, user_id)
+        if role not in ("owner", "analyst"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only project owners and analysts can start interpretation sessions",
+            )
 
         target_version_id = version_id or req.current_version_id
         if not target_version_id:
-            # Fallback to latest version
             latest_v = (
                 db.query(RequirementVersion)
                 .filter(RequirementVersion.requirement_id == requirement_id)
@@ -44,7 +48,7 @@ class SessionService:
         session = InterpretationSession(
             requirement_version_id=target_version_id,
             created_by=user_id,
-            status="collecting",  # Direct open collection
+            status="open",  # OPEN state for blind collection
             mode=mode if mode in ("standard", "self_comparison") else "standard",
         )
         db.add(session)
@@ -81,17 +85,20 @@ class SessionService:
         user_id: int,
         perspective: str,
         expected_behavior: str,
+        assumptions: Optional[str] = None,
+        acceptance_criteria: Optional[str] = None,
+        edge_cases: Optional[str] = None,
+        notes: Optional[str] = None,
         actor: Optional[str] = None,
         trigger_conditions: Optional[str] = None,
         delivery_hours: Optional[int] = None,
         constraints: Optional[str] = None,
-        acceptance_criteria: Optional[str] = None,
     ) -> Interpretation:
         """
-        Submits a structured interpretation during COLLECTING phase.
+        Submits a structured interpretation during OPEN / COLLECTING phase.
         Enforces:
-        - Atomic rejection if session is LOCKED / ANALYZED / RESOLVED.
-        - One submission per user per standard session (unless self_comparison mode).
+        - Atomic rejection if session is LOCKED / ANALYZED / REVEALED / RESOLVED.
+        - One submission per user per standard session.
         - Safe audit logging without storing the sensitive interpretation body.
         """
         session = db.query(InterpretationSession).filter(InterpretationSession.session_id == session_id).first()
@@ -101,13 +108,14 @@ class SessionService:
         project_id = session.requirement_version.requirement.project_id
         ProjectService.require_member(db, project_id, user_id)
 
-        if session.status != "collecting":
+        # Disallow submissions if session is not in open/collecting state
+        if session.status not in ("open", "collecting"):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Submissions are closed. Session is currently {session.status.upper()}.",
             )
 
-        # In standard mode, enforce single submission per user
+        # Enforce single submission per user in standard mode
         if session.mode == "standard":
             existing = (
                 db.query(Interpretation)
@@ -136,7 +144,6 @@ class SessionService:
                     detail=f"Perspective '{perspective}' has already been submitted for this session.",
                 )
 
-        # Validate delivery_hours if supplied
         if delivery_hours is not None and delivery_hours <= 0:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -150,10 +157,13 @@ class SessionService:
             perspective=perspective.strip(),
             actor=actor.strip() if actor else None,
             expected_behavior=expected_behavior.strip(),
+            assumptions=assumptions.strip() if assumptions else None,
+            acceptance_criteria=acceptance_criteria.strip() if acceptance_criteria else None,
+            edge_cases=edge_cases.strip() if edge_cases else None,
+            notes=notes.strip() if notes else None,
             trigger_conditions=trigger_conditions.strip() if trigger_conditions else None,
             delivery_hours=delivery_hours,
             constraints=constraints.strip() if constraints else None,
-            acceptance_criteria=acceptance_criteria.strip() if acceptance_criteria else None,
         )
         db.add(interp)
         db.flush()
@@ -180,16 +190,16 @@ class SessionService:
     ) -> List[Interpretation]:
         """
         CRITICAL SERVER-SIDE BLIND VISIBILITY ENFORCEMENT:
-        - When session is DRAFT or COLLECTING:
+        - When session is OPEN or COLLECTING:
           Returns ONLY the calling user's own submission.
           Other stakeholders' answers are NEVER returned in JSON, HTML, or logs.
-          Owner has NO privilege to see others' hidden answers prior to lock.
-        - When session is LOCKED, ANALYZED, or RESOLVED:
+          Owner has NO privilege to see others' hidden answers prior to lock/reveal.
+        - When session is LOCKED, ANALYZED, REVEALED, or RESOLVED:
           Returns all submissions to authorized project members.
         """
         session = SessionService.get_session(db, session_id, user_id)
 
-        if session.status in ("draft", "collecting"):
+        if session.status in ("open", "collecting", "draft"):
             return (
                 db.query(Interpretation)
                 .filter(Interpretation.session_id == session_id, Interpretation.user_id == user_id)
@@ -208,7 +218,7 @@ class SessionService:
         db: Session, interpretation_id: int, user_id: int
     ) -> Interpretation:
         """
-        Direct IDOR protection: prevents fetching another user's interpretation by direct ID before lock.
+        Direct ID lookup protection: prevents fetching another user's interpretation by ID before reveal.
         """
         interp = db.query(Interpretation).filter(Interpretation.interpretation_id == interpretation_id).first()
         if not interp:
@@ -217,7 +227,7 @@ class SessionService:
         project_id = interp.requirement.project_id
         ProjectService.require_member(db, project_id, user_id)
 
-        if interp.session.status in ("draft", "collecting") and interp.user_id != user_id:
+        if interp.session.status in ("open", "collecting", "draft") and interp.user_id != user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied. Interpretation answers are strictly confidential until session lock.",
@@ -231,37 +241,49 @@ class SessionService:
         if not session:
             return {"total_submissions": 0, "status": "unknown"}
         count = db.query(Interpretation).filter(Interpretation.session_id == session_id).count()
+        
+        # Collect member participant status (names and whether they submitted, without leaking answers)
+        project_id = session.requirement_version.requirement.project_id
+        project_members = ProjectService.list_accessible_projects(db, session.created_by)
+        submitted_user_ids = {i.user_id for i in db.query(Interpretation.user_id).filter(Interpretation.session_id == session_id).all()}
+
         return {
             "session_id": session_id,
             "status": session.status,
             "mode": session.mode,
             "total_submissions": count,
+            "submitted_user_ids": list(submitted_user_ids),
         }
 
     @staticmethod
     def lock_session(db: Session, session_id: int, user_id: int) -> InterpretationSession:
         """
-        Owner-only atomic lock:
+        Lock:
         - Freezes submissions.
         - Triggers deterministic divergence detection.
-        - Transitions session state: COLLECTING -> LOCKED -> ANALYZED.
+        - Sets session status to analyzed/locked.
         """
         session = db.query(InterpretationSession).filter(InterpretationSession.session_id == session_id).first()
         if not session:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
 
         project_id = session.requirement_version.requirement.project_id
-        ProjectService.require_owner(db, project_id, user_id)
+        project, role = ProjectService.require_member(db, project_id, user_id)
+        if role not in ("owner", "analyst"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only project owners and analysts can lock interpretation sessions",
+            )
 
-        if session.status != "collecting":
+        if session.status not in ("open", "collecting"):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail=f"Cannot lock session in '{session.status}' state.",
             )
 
         now = datetime.now(timezone.utc)
-        session.status = "locked"
         session.locked_at = now
+        session.status = "locked"
         db.flush()
 
         # Run divergence analysis immediately in the same transaction
@@ -277,6 +299,46 @@ class SessionService:
             entity_id=session.session_id,
             details=f"Locked session #{session.session_id}. Analyzed {len(findings)} divergence findings.",
             metadata={"findings_count": len(findings)},
+        )
+
+        db.commit()
+        db.refresh(session)
+        return session
+
+    @staticmethod
+    def reveal_session(db: Session, session_id: int, user_id: int) -> InterpretationSession:
+        """
+        Reveals submissions and divergence results to all project members.
+        Enforces valid state transition: LOCKED/ANALYZED -> REVEALED.
+        """
+        session = db.query(InterpretationSession).filter(InterpretationSession.session_id == session_id).first()
+        if not session:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+        project_id = session.requirement_version.requirement.project_id
+        project, role = ProjectService.require_member(db, project_id, user_id)
+        if role not in ("owner", "analyst"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only project owners and analysts can reveal session interpretations",
+            )
+
+        if session.status not in ("locked", "analyzed"):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Cannot reveal session in '{session.status}' state. Must be locked first.",
+            )
+
+        session.status = "revealed"
+
+        AuditService.log_event(
+            db=db,
+            project_id=project_id,
+            actor_id=user_id,
+            action="SESSION_REVEALED",
+            entity_type="session",
+            entity_id=session.session_id,
+            details=f"Revealed session #{session.session_id} interpretations to team.",
         )
 
         db.commit()

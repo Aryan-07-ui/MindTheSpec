@@ -172,3 +172,46 @@ class ProjectService:
             details=f"Removed member user ID {user_id}",
         )
         db.commit()
+
+    @staticmethod
+    def update_project(
+        db: Session, project_id: int, user_id: int, title: Optional[str] = None, description: Optional[str] = None
+    ) -> Project:
+        """Updates project details. Restricted to project owner."""
+        project = ProjectService.require_owner(db, project_id, user_id)
+        if title is not None:
+            title_clean = title.strip()
+            if len(title_clean) < 2:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Title must be at least 2 characters")
+            project.project_name = title_clean
+        if description is not None:
+            project.description = description.strip() if description.strip() else None
+
+        AuditService.log_event(
+            db=db,
+            project_id=project.project_id,
+            actor_id=user_id,
+            action="PROJECT_UPDATED",
+            entity_type="project",
+            entity_id=project.project_id,
+            details=f"Updated project details for '{project.project_name}'",
+        )
+        db.commit()
+        db.refresh(project)
+        return project
+
+    @staticmethod
+    def delete_project(db: Session, project_id: int, user_id: int):
+        """Deletes a project. Restricted to project owner."""
+        project = ProjectService.require_owner(db, project_id, user_id)
+        AuditService.log_event(
+            db=db,
+            project_id=project.project_id,
+            actor_id=user_id,
+            action="PROJECT_DELETED",
+            entity_type="project",
+            entity_id=project.project_id,
+            details=f"Deleted project '{project.project_name}'",
+        )
+        db.delete(project)
+        db.commit()

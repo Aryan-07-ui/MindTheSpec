@@ -18,98 +18,136 @@
 <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.75rem; flex-wrap: wrap; gap: 1rem;">
   <div>
     <h1>Divergence Detection Report #{{ session.session_id }}</h1>
-    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
-      <span class="badge badge-locked">Locked Session</span>
+    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; flex-wrap: wrap;">
+      <span class="badge badge-locked">{{ session.status | upper }}</span>
       {% if resolution %}
-      <span class="badge badge-resolved">Resolved</span>
+      <span class="badge badge-resolved">RESOLVED</span>
       {% else %}
-      <span class="badge badge-divergence">Awaiting Decision</span>
+      <span class="badge badge-divergence">AWAITING DECISION</span>
       {% endif %}
       <span style="font-size: 0.88rem; color: var(--ink-muted);">
-        Requirement: <strong>{{ session.requirement_version.requirement.req_code }}</strong>
+        Requirement: <strong>{{ session.requirement_version.requirement.req_code }}</strong> (v{{ session.requirement_version.version_no }})
+      </span>
+      <span class="badge {% if session.requirement_version.requirement.priority == 'critical' %}badge-divergence{% elif session.requirement_version.requirement.priority == 'high' %}badge-locked{% else %}badge-draft{% endif %}">
+        Priority: {{ session.requirement_version.requirement.priority | upper }}
       </span>
     </div>
   </div>
-  {% if role == 'owner' %}
-  <a href="/app/sessions/{{ session.session_id }}/resolution" class="btn btn-primary">
-    {% if resolution %}Edit Resolution{% else %}Record Official Resolution{% endif %}
-  </a>
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="/api/sessions/{{ session.session_id }}/export/csv" class="btn btn-secondary">
+      Export CSV Report
+    </a>
+    {% if role == 'owner' %}
+    <a href="/app/sessions/{{ session.session_id }}/resolution" class="btn btn-primary">
+      {% if resolution %}Edit Resolution{% else %}Record Official Resolution{% endif %}
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Target Requirement Context Card -->
+<div class="card" style="border-left: 4px solid var(--accent-grape); margin-bottom: 1.5rem;">
+  <div style="font-size: 0.82rem; font-weight: 700; color: var(--ink-muted); text-transform: uppercase; margin-bottom: 0.25rem;">
+    Original Specification Under Review
+  </div>
+  <h2 style="margin: 0 0 0.5rem 0; font-size: 1.15rem;">{{ session.requirement_version.requirement.title }}</h2>
+  <div style="font-size: 0.98rem; color: var(--ink-main); white-space: pre-wrap; margin-bottom: 0.75rem;">
+{{ session.requirement_version.body }}
+  </div>
+  {% if session.requirement_version.acceptance_notes %}
+  <div style="font-size: 0.88rem; color: var(--ink-muted); background: var(--bg-surface-alt); padding: 0.5rem 0.75rem; border-radius: var(--radius-sm);">
+    <strong>Stated Acceptance Criteria:</strong> {{ session.requirement_version.acceptance_notes }}
+  </div>
   {% endif %}
 </div>
 
 <!-- Resolution Banner (if already recorded) -->
 {% if resolution %}
-<div class="card" style="border-left: 4px solid var(--accent-mint); background-color: var(--accent-mint-light);">
+<div class="card" style="border-left: 4px solid var(--accent-mint); background-color: var(--accent-mint-light); margin-bottom: 1.5rem;">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
-    <h2 style="font-size: 1.18rem; color: var(--accent-mint-deep); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
+    <h2 style="font-size: 1.15rem; color: var(--accent-mint-deep); margin: 0; display: flex; align-items: center; gap: 0.4rem;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
       </svg>
-      Binding Resolution Recorded
+      Official Binding Resolution
     </h2>
-    <span style="font-size: 0.82rem; color: var(--ink-muted);">Decided by {{ resolution.decider.full_name }} &bull; {{ resolution.decided_at.strftime('%Y-%m-%d %H:%M') }}</span>
+    <span style="font-size: 0.82rem; color: var(--ink-muted);">
+      Decided by {{ resolution.decider.full_name }} &bull; {{ resolution.decided_at.strftime('%Y-%m-%d %H:%M') }}
+    </span>
   </div>
-  <div style="font-size: 1.1rem; font-weight: 700; color: var(--ink-main); margin-bottom: 0.5rem;">
+  <div style="font-size: 1.08rem; font-weight: 700; color: var(--ink-main); margin-bottom: 0.5rem;">
     {{ resolution.statement }}
   </div>
-  <div style="font-size: 0.95rem; color: var(--ink-muted);">
+  <div style="font-size: 0.94rem; color: var(--ink-muted);">
     <strong>Decision Rationale:</strong> {{ resolution.rationale }}
   </div>
 </div>
 {% endif %}
 
-<!-- Divergences Section with Staggered Entrance Animations -->
+<!-- Divergences Section -->
 <div class="card">
   <div class="card-header">
     <div>
-      <h2 class="card-title" style="margin: 0;">Discrepancy Findings (Deterministic Analysis)</h2>
+      <h2 class="card-title" style="margin: 0;">Discrepancy Findings (Deterministic Engine)</h2>
       <p style="font-size: 0.86rem; color: var(--ink-muted); margin: 0.25rem 0 0 0;">
-        Automated rule comparison &bull; Zero fabricated confidence ratings
+        Deterministic cross-perspective analysis &bull; Zero fabricated confidence ratings
       </p>
     </div>
-    <span class="showcase-badge" style="background-color: var(--signature-outline);">Deterministic Engine</span>
+    <span class="badge badge-draft">Rule-Based Analysis</span>
   </div>
 
   {% if divergences %}
   {% for div in divergences %}
-  <div class="divergence-card" style="animation-delay: {{ loop.index0 * 0.12 }}s;">
-    <div class="divergence-header">
-      <div>
-        <span class="badge {% if div.kind == 'structured_mismatch' %}badge-divergence{% else %}badge-draft{% endif %}" style="margin-right: 0.5rem;">
-          {{ div.kind | replace('_', ' ') | upper }}
+  <div class="divergence-card" style="margin-bottom: 1.25rem;">
+    <div class="divergence-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+        <span class="badge {% if div.severity == 'high' %}badge-divergence{% elif div.severity == 'medium' %}badge-locked{% else %}badge-draft{% endif %}">
+          {{ div.severity | upper }} SEVERITY
         </span>
-        <span class="divergence-field">{{ div.evidence_json.title or div.field_name }}</span>
+        <span class="badge badge-draft">
+          {{ (div.category or div.kind) | replace('_', ' ') | upper }}
+        </span>
+        <strong style="font-size: 1.05rem; color: var(--ink-main);">
+          {{ div.evidence_json.title or div.field_name }}
+        </strong>
       </div>
-      <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem;">
         {% if div.review_status == 'resolved' %}
-        <span class="badge badge-resolved">Resolved</span>
+        <span class="badge badge-resolved">&check; Resolved</span>
         {% else %}
-        <span class="badge badge-divergence divergence-alert-glow">Decision Required</span>
+        <span class="badge badge-divergence divergence-alert-glow">Action Required</span>
+        {% if role in ['owner', 'analyst'] %}
+        <form method="POST" action="/app/divergences/{{ div.divergence_id }}/resolve" style="display:inline;">
+          <input type="hidden" name="next" value="/app/sessions/{{ session.session_id }}/compare">
+          <button type="submit" class="btn btn-secondary btn-sm">Mark Resolved</button>
+        </form>
+        {% endif %}
         {% endif %}
       </div>
     </div>
 
-    <p style="color: var(--ink-body); font-weight: 500; margin-bottom: 0.85rem;">
+    <p style="color: var(--ink-body); font-weight: 500; margin-bottom: 0.5rem;">
       {{ div.evidence_json.summary }}
     </p>
+    {% if div.evidence_json.explanation %}
+    <p style="color: var(--ink-muted); font-size: 0.9rem; margin-bottom: 0.85rem;">
+      <strong>Details:</strong> {{ div.evidence_json.explanation }}
+    </p>
+    {% endif %}
 
     <!-- Evidence Discrepancy Grid -->
-    <div class="evidence-grid">
+    <div class="evidence-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;">
       {% for item in div.evidence_json.discrepancies %}
       <div class="evidence-box">
         <div class="evidence-perspective">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
           {{ item.perspective }} ({{ item.user_name }})
         </div>
         <div class="evidence-value">
           {% if div.field_name == 'delivery_hours' %}
-          <span style="color: var(--signature-outline); font-weight: 800;">{{ item.value }}h</span>
+          <span style="color: var(--signature-outline); font-weight: 800;">{{ item.value }} hours</span>
           {% else %}
-          {{ item.value }}
+          <div style="white-space: pre-wrap; font-size: 0.9rem;">{{ item.value }}</div>
           {% endif %}
         </div>
       </div>
@@ -119,7 +157,7 @@
   {% endfor %}
   {% else %}
   <div class="alert alert-success">
-    <strong>No structured differences detected:</strong> All participants agreed on the structured expectation fields.
+    <strong>No divergences detected:</strong> All submitted interpretations align on expected behaviors, timelines, and assumptions!
   </div>
   {% endif %}
 </div>
@@ -127,18 +165,20 @@
 <!-- Side-by-Side Submissions Table -->
 <div class="card">
   <div class="card-header">
-    <h2 class="card-title" style="margin: 0;">Stakeholder Submissions (Post-Lock Traceability)</h2>
+    <h2 class="card-title" style="margin: 0;">Disclosed Stakeholder Submissions (Post-Lock Traceability)</h2>
+    <span style="font-size: 0.85rem; color: var(--text-muted);">{{ interpretations | length }} verified submissions</span>
   </div>
 
   <div class="table-responsive">
     <table class="data-table">
       <thead>
         <tr>
-          <th>Perspective &amp; Contributor</th>
-          <th>Delivery Timeline</th>
-          <th>Primary Actor</th>
+          <th>Stakeholder &amp; Lens</th>
+          <th>Primary Actor &amp; SLA</th>
           <th>Expected Behavior</th>
+          <th>Assumptions</th>
           <th>Acceptance Criteria</th>
+          <th>Edge Cases &amp; Notes</th>
         </tr>
       </thead>
       <tbody>
@@ -149,15 +189,30 @@
             <div style="font-size: 0.82rem; color: var(--ink-muted);">{{ interp.user.full_name }}</div>
           </td>
           <td>
-            {% if interp.delivery_hours is not none %}
-            <strong style="color: var(--accent-grape); font-size: 1.05rem;">{{ interp.delivery_hours }}h</strong>
-            {% else %}
-            <span style="color: var(--ink-muted);">Unstated</span>
-            {% endif %}
+            <div><strong>Actor:</strong> {{ interp.actor or '-' }}</div>
+            <div style="margin-top: 0.25rem;">
+              <strong>SLA:</strong>
+              {% if interp.delivery_hours is not none %}
+              <span style="color: var(--accent-grape); font-weight: 700;">{{ interp.delivery_hours }}h</span>
+              {% else %}
+              <span style="color: var(--ink-muted);">Unstated</span>
+              {% endif %}
+            </div>
           </td>
-          <td>{{ interp.actor or '-' }}</td>
-          <td><div style="max-width: 320px; white-space: pre-wrap;">{{ interp.expected_behavior }}</div></td>
-          <td><div style="max-width: 280px; white-space: pre-wrap;">{{ interp.acceptance_criteria or '-' }}</div></td>
+          <td><div style="max-width: 280px; white-space: pre-wrap; font-size: 0.9rem;">{{ interp.expected_behavior }}</div></td>
+          <td><div style="max-width: 220px; white-space: pre-wrap; font-size: 0.88rem; color: var(--ink-body);">{{ interp.assumptions or '-' }}</div></td>
+          <td><div style="max-width: 240px; white-space: pre-wrap; font-size: 0.88rem;">{{ interp.acceptance_criteria or '-' }}</div></td>
+          <td>
+            <div style="max-width: 220px; font-size: 0.85rem;">
+              {% if interp.edge_cases %}
+              <div><strong>Edge cases:</strong> {{ interp.edge_cases }}</div>
+              {% endif %}
+              {% if interp.notes %}
+              <div style="color: var(--ink-muted); margin-top: 0.2rem;"><strong>Notes:</strong> {{ interp.notes }}</div>
+              {% endif %}
+              {% if not interp.edge_cases and not interp.notes %}-{% endif %}
+            </div>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

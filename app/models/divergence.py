@@ -9,6 +9,8 @@ class Divergence(Base):
     session_id = Column(Integer, ForeignKey("interpretation_sessions.session_id", ondelete="CASCADE"), nullable=False, index=True)
     field_name = Column(String(100), nullable=False)
     kind = Column(String(50), nullable=False, default="structured_mismatch")
+    category = Column(String(50), nullable=True)  # behavior_conflict, timeline_mismatch, conflicting_assumptions, criteria_difference, missing_edge_cases
+    severity = Column(String(20), nullable=False, default="medium")  # high, medium, low
     evidence_json = Column(JSON, nullable=False)
     review_status = Column(String(20), nullable=False, default="open")  # open, resolved, ignored
     fingerprint = Column(String(64), nullable=False)

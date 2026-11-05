@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/app">Workspace</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/projects/{{ project.project_id }}">{{ project.project_name }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <span>Edit Settings</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom: 2rem;">
+  <div>
+    <h1>Edit Project</h1>
+    <p class="header-intro">Update project title, scope description, or manage project lifecycle.</p>
+  </div>
+</div>
+
+{% if error %}
+<div class="alert alert-danger" style="margin-bottom: 1.5rem; padding: 1rem 1.25rem; border-radius: var(--radius-md); background: rgba(122, 31, 61, 0.1); border: 1.5px solid var(--signature-outline); color: var(--signature-outline); font-weight: 600;">
+  {{ error }}
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 800px;">
+  <!-- Edit Details Card -->
+  <div class="card">
+    <div class="card-header">
+      <h3 style="margin: 0;">General Details</h3>
+    </div>
+    <form action="/app/projects/{{ project.project_id }}/edit" method="POST" id="editProjectForm">
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label for="title" class="form-label" style="display: block; font-weight: 700; margin-bottom: 0.4rem; color: var(--ink-main);">Project Title</label>
+        <input type="text" id="title" name="title" class="form-control" required minlength="2" maxlength="150" value="{{ project.project_name }}" style="width: 100%;">
+      </div>
+      <div class="form-group" style="margin-bottom: 1.5rem;">
+        <label for="description" class="form-label" style="display: block; font-weight: 700; margin-bottom: 0.4rem; color: var(--ink-main);">Project Description</label>
+        <textarea id="description" name="description" class="form-control" rows="4" maxlength="5000" style="width: 100%;">{{ project.description or '' }}</textarea>
+      </div>
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <button type="submit" class="btn btn-primary" id="saveBtn">Save Changes</button>
+        <a href="/app/projects/{{ project.project_id }}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Danger Zone Card -->
+  <div class="card" style="border: 1.5px solid rgba(122, 31, 61, 0.3); background: var(--bg-surface-alt);">
+    <div class="card-header" style="border-bottom-color: rgba(122, 31, 61, 0.2);">
+      <h3 style="margin: 0; color: var(--signature-outline);">Danger Zone</h3>
+    </div>
+    <p style="color: var(--ink-muted); margin-bottom: 1.25rem; font-size: 0.92rem;">
+      Permanently delete this project along with all associated requirements, blind interpretation sessions, and recorded divergences. This action cannot be undone.
+    </p>
+    <form action="/app/projects/{{ project.project_id }}/delete" method="POST" data-confirm="Are you absolutely sure you want to permanently delete this project? All requirements and sessions will be removed." id="deleteProjectForm">
+      <button type="submit" class="btn btn-danger" id="deleteBtn" style="background-color: var(--signature-outline); color: #fff; border-color: var(--signature-outline);">
+        Delete This Project
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('editProjectForm').addEventListener('submit', function() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.innerText = 'Saving changes...';
+});
+
+document.getElementById('deleteProjectForm').addEventListener('submit', function(e) {
+  const btn = document.getElementById('deleteBtn');
+  btn.disabled = true;
+  btn.innerText = 'Deleting project...';
+});
+</script>
+{% endblock %}

@@ -56,6 +56,64 @@ def test_member_management(client, seeded_users):
     })
     assert res.status_code == 403
 
+def test_project_edit_and_delete(client, seeded_users):
+    owner_headers = seeded_users["owner"]["headers"]
+    dev_headers = seeded_users["dev"]["headers"]
+    stranger_headers = seeded_users["stranger"]["headers"]
+
+    # 1. Create project
+    res = client.post("/api/projects", headers=owner_headers, json={
+        "title": "Initial Project Title",
+        "description": "Initial scope description",
+    })
+    assert res.status_code == 201
+    proj_id = res.json()["id"]
+
+    # Add dev member
+    client.post(f"/api/projects/{proj_id}/members", headers=owner_headers, json={
+        "email": "dev@example.com",
+        "role": "developer",
+    })
+
+    # 2. Stranger attempts edit -> 403
+    res_stranger = client.put(f"/api/projects/{proj_id}", headers=stranger_headers, json={
+        "title": "Hacked Title",
+    })
+    assert res_stranger.status_code == 403
+
+    # 3. Non-owner member (dev) attempts edit -> 403
+    res_dev = client.put(f"/api/projects/{proj_id}", headers=dev_headers, json={
+        "title": "Developer Edited Title",
+    })
+    assert res_dev.status_code == 403
+
+    # 4. Owner edits project -> 200
+    res_owner_edit = client.put(f"/api/projects/{proj_id}", headers=owner_headers, json={
+        "title": "Updated Project Title",
+        "description": "Refined scope description",
+    })
+    assert res_owner_edit.status_code == 200
+    updated_data = res_owner_edit.json()
+    assert updated_data["title"] == "Updated Project Title"
+    assert updated_data["description"] == "Refined scope description"
+
+    # Verify updated values on GET
+    res_get = client.get(f"/api/projects/{proj_id}", headers=owner_headers)
+    assert res_get.status_code == 200
+    assert res_get.json()["title"] == "Updated Project Title"
+
+    # 5. Non-owner (dev) attempts delete -> 403
+    res_dev_del = client.delete(f"/api/projects/{proj_id}", headers=dev_headers)
+    assert res_dev_del.status_code == 403
+
+    # 6. Owner deletes project -> 200
+    res_del = client.delete(f"/api/projects/{proj_id}", headers=owner_headers)
+    assert res_del.status_code == 200
+
+    # 7. Accessing deleted project -> 404
+    res_after = client.get(f"/api/projects/{proj_id}", headers=owner_headers)
+    assert res_after.status_code == 404
+
 def test_requirement_creation(client, seeded_users):
     owner_headers = seeded_users["owner"]["headers"]
     dev_headers = seeded_users["dev"]["headers"]

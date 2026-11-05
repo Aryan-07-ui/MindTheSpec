@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block breadcrumbs %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <a href="/app">Workspace</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/projects/{{ requirement.project.project_id }}">{{ requirement.project.project_name }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="/app/requirements/{{ requirement.requirement_id }}">{{ requirement.req_code }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <span>Edit</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Edit Requirement {{ requirement.req_code }}</h1>
+    <p style="color: var(--text-muted); margin-top: 0.25rem;">
+      Modify requirement specifications, acceptance criteria, and priority level.
+    </p>
+  </div>
+  <a href="/app/requirements/{{ requirement.requirement_id }}" class="btn btn-secondary">
+    &larr; Back to Requirement
+  </a>
+</div>
+
+{% if error %}
+<div class="alert alert-error" style="margin-bottom: 1.5rem;">
+  <strong>Error:</strong> {{ error }}
+</div>
+{% endif %}
+
+<div class="card" style="max-width: 840px;">
+  <div class="card-header">
+    <h2 class="card-title" style="margin: 0;">Requirement Details</h2>
+  </div>
+
+  <form method="POST" action="/app/requirements/{{ requirement.requirement_id }}/edit">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+      <div class="form-group">
+        <label for="req-title" class="form-label">Requirement Title</label>
+        <input type="text" id="req-title" name="title" class="form-control" required value="{{ requirement.title }}">
+      </div>
+
+      <div class="form-group">
+        <label for="req-priority" class="form-label">Priority</label>
+        <select id="req-priority" name="priority" class="form-control">
+          <option value="low" {% if requirement.priority == 'low' %}selected{% endif %}>Low</option>
+          <option value="medium" {% if requirement.priority == 'medium' %}selected{% endif %}>Medium</option>
+          <option value="high" {% if requirement.priority == 'high' %}selected{% endif %}>High</option>
+          <option value="critical" {% if requirement.priority == 'critical' %}selected{% endif %}>Critical</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="req-status" class="form-label">Status</label>
+        <select id="req-status" name="status" class="form-control">
+          <option value="active" {% if requirement.status == 'active' %}selected{% endif %}>Active</option>
+          <option value="draft" {% if requirement.status == 'draft' %}selected{% endif %}>Draft</option>
+          <option value="resolved" {% if requirement.status == 'resolved' %}selected{% endif %}>Resolved</option>
+          <option value="deprecated" {% if requirement.status == 'deprecated' %}selected{% endif %}>Deprecated</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="req-desc" class="form-label">Detailed Description</label>
+      <textarea id="req-desc" name="description" class="form-control" rows="5" required>{{ requirement.description }}</textarea>
+      <div class="form-help">Core behavioral specification. Be explicit about expected capabilities and business context.</div>
+    </div>
+
+    <div class="form-group">
+      <label for="req-crit" class="form-label">Acceptance Criteria</label>
+      <textarea id="req-crit" name="acceptance_criteria" class="form-control" rows="3" placeholder="Measurable conditions required for requirement verification...">{{ requirement.acceptance_criteria or '' }}</textarea>
+      <div class="form-help">Clear, objective success criteria and testable conditions.</div>
+    </div>
+
+    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 1.5rem;">
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+      <a href="/app/requirements/{{ requirement.requirement_id }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% if role == 'owner' %}
+<div class="card" style="max-width: 840px; border-color: rgba(220, 38, 38, 0.4); margin-top: 2rem;">
+  <div class="card-header" style="background-color: rgba(220, 38, 38, 0.04);">
+    <h3 style="color: var(--color-danger, #dc2626); margin: 0; font-size: 1.1rem;">Danger Zone</h3>
+  </div>
+  <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+    Deleting this requirement will permanently remove its historical versions, interpretation sessions, and detected divergences.
+  </p>
+  <form method="POST" action="/app/requirements/{{ requirement.requirement_id }}/delete" onsubmit="return confirm('Are you sure you want to permanently delete this requirement? This action cannot be undone.');">
+    <button type="submit" class="btn btn-danger">Delete Requirement</button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
